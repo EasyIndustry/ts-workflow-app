@@ -101,9 +101,10 @@ export function verificarFlujo(contenido: ContenidoDeFlujo, capacidades: readonl
       }
     }
     if (n.type === 'evento') {
-      const acciones = n.data.variante === 'espera' ? (n.data.eventos ?? []).map((e) => [e.nombre, e.accion] as const) : n.data.variante === 'fin' ? [] : [[n.data.nombre, n.data.accion] as const]
-      for (const [nombre, accion] of acciones) {
+      const acciones = n.data.variante === 'espera' ? (n.data.eventos ?? []).map((e) => [e.nombre, e.accion, e.conviene] as const) : n.data.variante === 'fin' ? [] : [[n.data.nombre, n.data.accion, n.data.conviene] as const]
+      for (const [nombre, accion, conviene] of acciones) {
         if (accion && !capacidades.includes(accion)) error(`${quien}: «${nombre}» usa la acción «${accion}», que no existe en este sistema.`, n)
+        for (const id of condicionesDe(conviene)) if (!capacidades.includes(id)) error(`${quien}: lo que conviene en «${nombre}» usa la condición «${id}», que no existe en este sistema.`, n)
       }
     }
 

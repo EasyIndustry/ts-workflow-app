@@ -27,8 +27,8 @@ La posición (\`position: { x, y }\`) es opcional: sin ella, los nodos se acomod
 |---|---|---|
 | \`evento\`, variante \`inicio\` | \`{ variante: "inicio", nombre, accion? }\` | \`salida\` |
 | \`evento\`, variante \`fin\` | \`{ variante: "fin", nombre, rechazo?, mensaje? }\` | ninguna |
-| \`evento\`, variante \`espera\` | \`{ variante: "espera", nombre, eventos: [{ id, nombre, accion? }] }\` | una por evento: su \`id\` |
-| \`evento\`, variante \`interrupcion\` | \`{ variante: "interrupcion", nombre, accion?, excepto?, lateral? }\` | \`salida\` |
+| \`evento\`, variante \`espera\` | \`{ variante: "espera", nombre, eventos: [{ id, nombre, accion?, conviene? }] }\` | una por evento: su \`id\` |
+| \`evento\`, variante \`interrupcion\` | \`{ variante: "interrupcion", nombre, accion?, conviene?, excepto?, lateral? }\` | \`salida\` |
 | \`funcion\` | \`{ nombre, capacidad, params }\` | \`salida\` |
 | \`decision\` | \`{ nombre, ramas: [{ id, nombre, condicion? }] }\` | una por rama: su \`id\`, más \`sino\` |
 | \`subflujo\` | \`{ nombre, flujo, version, salidas: [{ id, nombre }] }\` | una por salida: su \`id\` |
@@ -43,6 +43,9 @@ La posición (\`position: { x, y }\`) es opcional: sin ella, los nodos se acomod
 - Una **espera** con \`eventos: []\` no tiene salidas: se deja solo por una interrupción.
 - **accion** (en un inicio, una interrupción o un evento de una espera): el id de la acción del sistema que produce ese evento. La
   hace una persona; el flujo no la ejecuta, decide si se puede y qué sigue.
+- **conviene** (en un evento de una espera, \`eventos[].conviene\`, o en una interrupción, \`data.conviene\`): una condición, con la
+  misma forma que la de una rama. No impide la acción: el sistema la evalúa y se la muestra a la persona. Es la «sugerencia» del
+  motor.
 - **funcion**: lo que el flujo hace solo. \`capacidad\` es el id de un efecto (o de una acción que el flujo ejecuta por su cuenta) y
   \`params\` cumple su schema. No uses una función para lo que hace la persona: eso es el evento.
 - **condicion** (en una rama): \`{ "condicion": id, "params": {…} }\`, o una combinación: \`{ "todas": [...] }\`, \`{ "alguna": [...] }\`,

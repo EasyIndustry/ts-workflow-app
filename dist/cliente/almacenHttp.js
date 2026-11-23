@@ -22,7 +22,7 @@ export function crearAlmacenHttp(opciones) {
         if (!respuesta.ok) {
             const d = (datos ?? {});
             const mensaje = typeof d.error === 'string' ? d.error : typeof d.message === 'string' ? d.message : `El servidor respondió ${respuesta.status}.`;
-            throw new ErrorDelServidor(mensaje, respuesta.status, d.problemas);
+            throw new ErrorDelServidor(mensaje, respuesta.status, Array.isArray(d.problemas) ? d.problemas : undefined);
         }
         return datos;
     }
@@ -33,6 +33,10 @@ export function crearAlmacenHttp(opciones) {
         abrir: (id) => pedir('GET', de(id)),
         guardarBorrador: async (id, contenido) => void (await pedir('PUT', `${de(id)}/borrador`, { contenido })),
         publicar: async (id) => (await pedir('POST', `${de(id)}/publicar`)).version,
+        publicarConAvisos: async (id) => {
+            const { version, avisos } = await pedir('POST', `${de(id)}/publicar`);
+            return { version, avisos: Array.isArray(avisos) ? avisos.filter((a) => typeof a === 'string') : [] };
+        },
         subflujos: () => pedir('GET', '/subflujos'),
         contenidoDeVersion: (id, version) => pedir('GET', `${de(id)}/versiones/${version}`),
         definicion: (id) => pedir('GET', `${de(id)}/definicion`),

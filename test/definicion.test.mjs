@@ -208,3 +208,23 @@ test('un rechazo adentro de un subflujo corta la acción y no es una de sus sali
   assert.deepEqual(problemas, [])
   assert.deepEqual(definicion.transiciones[0], { id: 'terminar', accion: 'x.terminar', nombre: 'Terminar', hacia: 'z', requisitos: { condicion: 'x.firmo', mensaje: 'Falta la firma' }, desde: ['a'] })
 })
+
+test('lo que conviene en un evento viaja como sugerencia de su transición, sin impedirla', () => {
+  const conviene = { todas: [c('pedido.tiene', { campo: 'foto' }), c('pedido.tiene', { campo: 'nota' })] }
+  const flujo = {
+    nodos: [
+      ev('inicio', 'inicio', 'Se carga'),
+      ev('nuevo', 'espera', 'Nuevo', { eventos: [{ id: 'cerrar', nombre: 'Cerrar', accion: 'pedidos.cerrar', conviene }] }),
+      ev('avisar', 'interrupcion', 'Avisar', { accion: 'pedidos.avisar', lateral: true, conviene: c('pedido.pago') }),
+      ev('cerrado', 'fin', 'Cerrado'),
+      ev('sigue', 'fin', 'Sigue'),
+    ],
+    flechas: [f('inicio', 'nuevo'), f('nuevo', 'cerrado', 'cerrar'), f('avisar', 'sigue')],
+  }
+  const { definicion, problemas } = definicionDeFlujo(flujo, OPCIONES)
+  assert.deepEqual(problemas, [])
+  const de = (id) => definicion.transiciones.find((t) => t.id === id)
+  assert.deepEqual(de('cerrar').sugerencias, conviene)
+  assert.equal(de('cerrar').requisitos, undefined)
+  assert.deepEqual(de('avisar').sugerencias, c('pedido.pago'))
+})

@@ -247,3 +247,24 @@ test('el servidor traduce un flujo a la definición del motor, con sus subflujos
   await cliente.guardarBorrador(maestro.id, { nodos: nodos.map((n) => (n.id === 'nuevo' ? { ...n, data: { ...n.data, eventos: [{ id: 'cerrar', nombre: 'Cerrar' }] } } : n)), flechas })
   assert.deepEqual(await cliente.definicion(maestro.id), { problemas: ['«Cerrar» no tiene elegida la acción que lo produce.'] })
 })
+
+test('publicar con avisos: el servidor los pasa, y un rechazo del sistema llega con su motivo y sus problemas', async () => {
+  const base = crearAlmacenEnMemoria()
+  const flujo = await base.crear('Con avisos', 'maestro')
+  await base.guardarBorrador(flujo.id, validarContenido(COMPLETO))
+  let rechazar = false
+  const almacen = { ...base, publicarConAvisos: async (id) => ({ version: await base.publicar(id), avisos: ['La versión nueva deja de tener algo.'] }) }
+  const fetchFalso = async (url, init) => {
+    if (rechazar) return new Response(JSON.stringify({ error: 'El sistema no lo acepta.', problemas: [{ nivel: 'error', mensaje: 'Falta algo.' }] }), { status: 422 })
+    const { estado, cuerpo } = await atender({ metodo: init.method, ruta: new URL(url).pathname.replace('/app', ''), cuerpo: init.body && JSON.parse(init.body) }, { almacen, capacidades: () => CAPACIDADES, puedeEditar: true, puedePublicar: true })
+    return new Response(JSON.stringify(cuerpo), { status: estado })
+  }
+  const cliente = crearAlmacenHttp({ urlBase: 'http://x/app', fetch: fetchFalso })
+  assert.deepEqual(await cliente.publicarConAvisos(flujo.id), { version: 1, avisos: ['La versión nueva deja de tener algo.'] })
+  rechazar = true
+  await assert.rejects(cliente.publicarConAvisos(flujo.id), (e) => e.estado === 422 && e.message === 'El sistema no lo acepta.' && e.problemas[0].mensaje === 'Falta algo.')
+  // Lo que conviene se guarda tal cual: limpiar el contenido no lo pierde.
+  const conviene = { condicion: 'x' }
+  const limpio = validarContenido({ nodos: [inicio, { id: 'e', type: 'evento', data: { variante: 'espera', nombre: 'E', eventos: [{ id: 'a', nombre: 'A', conviene }] } }], flechas: [] })
+  assert.deepEqual(limpio.nodos[1].data.eventos[0].conviene, conviene)
+})

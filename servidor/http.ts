@@ -72,7 +72,7 @@ export async function definicionDe(almacen: Almacen, id: string): Promise<Traduc
  * | `GET /flujos/:id/verificacion` | Los problemas del borrador. |
  * | `GET /flujos/:id/definicion` | El flujo traducido a una definición de `ts-workflow-core`, o por qué no se puede. |
  * | `GET /flujos/:id/versiones/:n` | El contenido de una versión publicada. |
- * | `POST /flujos/:id/publicar` | Publica el borrador si no tiene errores. |
+ * | `POST /flujos/:id/publicar` | Publica el borrador si no tiene errores: `{ version, avisos? }`. Si no se puede, `{ error, problemas? }`. |
  * | `GET /subflujos` | Los subflujos publicados, con sus salidas. |
  * | `GET /capacidades` | Lo que una función puede hacer en este sistema. |
  */
@@ -108,6 +108,11 @@ export async function atender(pedido: Pedido, opciones: OpcionesDeAtencion): Pro
       if (!opciones.puedePublicar) return mal(403, 'No tenés permiso para publicar flujos.')
       const problemas = await problemasDe(id, opciones)
       if (problemas.some((p) => p.nivel === 'error')) return mal(422, 'El flujo tiene problemas que impiden publicarlo.', { problemas })
+      // Si el almacén del sistema tiene algo que avisar de la publicación, viaja en la respuesta y la ventana de publicar lo muestra.
+      if (opciones.almacen.publicarConAvisos) {
+        const { version, avisos = [] } = await opciones.almacen.publicarConAvisos(id)
+        return bien({ version, ...(avisos.length > 0 && { avisos }) })
+      }
       return bien({ version: await opciones.almacen.publicar(id) })
     }
     return mal(404, 'No existe esa ruta.')

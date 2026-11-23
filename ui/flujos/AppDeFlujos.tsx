@@ -9,7 +9,7 @@ import { BarraDeFlujo } from './BarraDeFlujo'
 import { compararFlujos } from './comparar'
 import './flujos.css'
 import { ListaDeFlujos } from './ListaDeFlujos'
-import { PublicarFlujo } from './PublicarFlujo'
+import { PublicarFlujo, type PublicarFlujoProps } from './PublicarFlujo'
 import { verificarFlujo } from './verificar'
 
 export interface AppDeFlujosProps {
@@ -52,6 +52,8 @@ function App({ almacen, capacidades, puedePublicar = true, prueba, tema }: AppDe
   const [guardando, setGuardando] = useState(false)
   const [fallo, setFallo] = useState(false)
   const [publicando, setPublicando] = useState(false)
+  // Cómo va la publicación: esperando al sistema, rechazada (con el porqué) o hecha con algo que avisar.
+  const [publicacion, setPublicacion] = useState<{ enCurso?: boolean; rechazo?: PublicarFlujoProps['rechazo']; hecha?: PublicarFlujoProps['publicado'] }>({})
   const [saliendo, setSaliendo] = useState(false)
   // De qué flujos se vino al abrir un subflujo desde un nodo, para volver por el mismo camino.
   const [camino, setCamino] = useState<readonly { id: string; nombre: string }[]>([])
@@ -89,9 +91,19 @@ function App({ almacen, capacidades, puedePublicar = true, prueba, tema }: AppDe
 
   async function publicar() {
     if (!abierto) return
-    const version = await almacen.publicar(abierto.id)
-    setAbierto((f) => f && { ...f, version, conBorrador: false, publicado: JSON.parse(guardado) as ContenidoDeFlujo })
-    setPublicando(false)
+    setPublicacion({ enCurso: true })
+    try {
+      const { version, avisos = [] } = almacen.publicarConAvisos ? await almacen.publicarConAvisos(abierto.id) : { version: await almacen.publicar(abierto.id) }
+      setAbierto((f) => f && { ...f, version, conBorrador: false, publicado: JSON.parse(guardado) as ContenidoDeFlujo })
+      // Con algo que avisar, la ventana queda abierta para que la persona lo lea.
+      if (avisos.length > 0) return setPublicacion({ hecha: { version, avisos } })
+      setPublicacion({})
+      setPublicando(false)
+    } catch (e) {
+      // El sistema dijo que no (o no respondió): la ventana queda abierta con el motivo, y nada cambió.
+      const problemas = (e as { problemas?: unknown }).problemas
+      setPublicacion({ rechazo: { mensaje: e instanceof Error && e.message ? e.message : 'No se pudo publicar.', ...(Array.isArray(problemas) && { problemas: problemas.filter((p): p is { mensaje: string } => typeof p?.mensaje === 'string') }) } })
+    }
   }
 
   function salir() {
@@ -141,7 +153,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba, tema }: AppDe
         volverA={camino.at(-1)?.nombre}
         onGuardar={() => sinGuardar && void guardar(sinGuardar)}
         hayCambiosSinGuardar={Boolean(sinGuardar) && !guardando}
-        onPublicar={puedePublicar ? () => setPublicando(true) : undefined}
+        onPublicar={puedePublicar ? () => (setPublicacion({}), setPublicando(true)) : undefined}
       />
       <div className="wf-app-editor">
         <Editor key={abierto.id} capacidades={capacidades} subflujos={subflujos} tipo={abierto.tipo} onAbrirFlujo={(id) => void irA(id)} prueba={prueba} tema={tema} defaultNodes={abierto.contenido.nodos} defaultEdges={abierto.contenido.flechas} fitView fitViewOptions={{ maxZoom: 1.2 }}>
@@ -152,6 +164,9 @@ function App({ almacen, capacidades, puedePublicar = true, prueba, tema }: AppDe
         abierta={publicando}
         onCerrar={() => setPublicando(false)}
         onPublicar={() => void publicar()}
+        publicando={publicacion.enCurso}
+        rechazo={publicacion.rechazo}
+        publicado={publicacion.hecha}
         nombre={abierto.nombre}
         version={abierto.version}
         problemas={verificarFlujo(borrador, capacidades.map((c) => c.id), { id: abierto.id, tipo: abierto.tipo, subflujos })}

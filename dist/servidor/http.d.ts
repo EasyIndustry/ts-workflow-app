@@ -40,7 +40,7 @@ export declare function definicionDe(almacen: Almacen, id: string): Promise<Trad
  * | `GET /flujos/:id/verificacion` | Los problemas del borrador. |
  * | `GET /flujos/:id/definicion` | El flujo traducido a una definición de `ts-workflow-core`, o por qué no se puede. |
  * | `GET /flujos/:id/versiones/:n` | El contenido de una versión publicada. |
- * | `POST /flujos/:id/publicar` | Publica el borrador si no tiene errores. |
+ * | `POST /flujos/:id/publicar` | Publica el borrador si no tiene errores: `{ version, avisos? }`. Si no se puede, `{ error, problemas? }`. |
  * | `GET /subflujos` | Los subflujos publicados, con sus salidas. |
  * | `GET /capacidades` | Lo que una función puede hacer en este sistema. |
  */

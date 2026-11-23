@@ -172,7 +172,7 @@ export function definicionDeFlujo(contenido, opciones) {
         estados.set(id, { id, nombre: nodo.data.nombre, ...(nodo.type === 'evento' && nodo.data.variante === 'fin' && { final: true }) });
     };
     /** Arma la transición de un evento: sus requisitos, a dónde lleva y qué efectos tiene. */
-    function transicion(id, nombre, accion, desde, excepto, primero, lateral) {
+    function transicion(id, nombre, accion, desde, excepto, primero, lateral, conviene) {
         try {
             if (!accion)
                 throw new NoSePuede(`«${nombre}» no tiene elegida la acción que lo produce.`);
@@ -215,7 +215,7 @@ export function definicionDeFlujo(contenido, opciones) {
             transiciones.push({
                 id,
                 desde,
-                cuerpo: { accion, nombre, ...(excepto?.length && { excepto: [...excepto] }), ...(hacia && { hacia }), ...(requisitos !== true && { requisitos }), ...(efectos.length > 0 && { efectos }) },
+                cuerpo: { accion, nombre, ...(excepto?.length && { excepto: [...excepto] }), ...(hacia && { hacia }), ...(requisitos !== true && { requisitos }), ...(conviene && { sugerencias: conviene }), ...(efectos.length > 0 && { efectos }) },
                 ...(decision && { decision }),
             });
         }
@@ -252,10 +252,10 @@ export function definicionDeFlujo(contenido, opciones) {
             if (nodo.data.variante === 'espera') {
                 anotarEstado(nodo.id);
                 for (const evento of nodo.data.eventos ?? [])
-                    transicion(evento.id, evento.nombre, evento.accion, [nodo.id], undefined, destino(raiz, nodo, evento.id), false);
+                    transicion(evento.id, evento.nombre, evento.accion, [nodo.id], undefined, destino(raiz, nodo, evento.id), false, evento.conviene);
             }
             else if (nodo.data.variante === 'interrupcion') {
-                transicion(nodo.id, nodo.data.nombre, nodo.data.accion, '*', nodo.data.excepto, destino(raiz, nodo, 'salida'), nodo.data.lateral === true);
+                transicion(nodo.id, nodo.data.nombre, nodo.data.accion, '*', nodo.data.excepto, destino(raiz, nodo, 'salida'), nodo.data.lateral === true, nodo.data.conviene);
             }
         }
         catch (e) {

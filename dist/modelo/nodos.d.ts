@@ -12,6 +12,11 @@ type Nombrado = {
  */
 export type EventoEscuchado = Nombrado & {
     accion?: string;
+    /**
+     * Lo que conviene que se cumpla al hacer la acción, como una condición (igual que la de una rama). No la impide: el sistema la
+     * evalúa y se lo muestra a la persona. Es la «sugerencia» del motor.
+     */
+    conviene?: Record<string, unknown>;
 };
 /**
  * Una rama de una decisión. `condicion` es lo que evalúa: una condición del registro con sus parámetros
@@ -47,6 +52,8 @@ export type DatosEvento = {
      * suele ser más preciso.
      */
     mensaje?: string;
+    /** En una interrupción: lo que conviene que se cumpla al hacer la acción. No la impide (ver `EventoEscuchado.conviene`). */
+    conviene?: Record<string, unknown>;
     /** En una interrupción: los ids de las esperas donde no aplica. */
     excepto?: readonly string[];
     /**

@@ -8,6 +8,7 @@ const CAMPOS = {
     lateral: 'No desvía el flujo',
     rechazo: 'Es un rechazo',
     mensaje: 'Qué se le dice a la persona',
+    conviene: 'Qué conviene (no impide)',
     ramas: 'Ramas',
     eventos: 'Eventos que escucha',
     excepto: 'No aplica en',

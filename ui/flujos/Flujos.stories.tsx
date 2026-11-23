@@ -118,3 +118,26 @@ export const PublicarPrimeraVez: Story = {
   name: 'Publicar: primera vez',
   render: () => <PublicarFlujo {...ventana} nombre="Reclamos" problemas={verificarFlujo(listo, ids)} diferencias={compararFlujos({ nodos: [], flechas: [] }, listo, nombres)} />,
 }
+
+/** El sistema no dejó publicar: la ventana queda abierta con el motivo y lo que encontró. */
+export const PublicarRechazado: Story = {
+  name: 'Publicar: el sistema no lo aceptó',
+  render: () => (
+    <PublicarFlujo
+      {...ventana}
+      nombre="Pedidos"
+      version={2}
+      problemas={verificarFlujo(listo, ids)}
+      diferencias={compararFlujos(vigente, listo, nombres)}
+      rechazo={{ mensaje: 'El sistema no acepta este flujo.', problemas: [{ mensaje: '«Revisar» usa una condición que el sistema ya no tiene.' }, { mensaje: 'Alguien publicó otra versión recién: volvé a intentar.' }] }}
+    />
+  ),
+}
+
+/** Se publicó, y el sistema tiene algo que avisar: la ventana queda abierta para que la persona lo lea. */
+export const PublicadoConAvisos: Story = {
+  name: 'Publicar: publicado con avisos',
+  render: () => (
+    <PublicarFlujo {...ventana} nombre="Pedidos" version={3} problemas={[]} diferencias={compararFlujos(vigente, vigente, nombres)} publicado={{ version: 3, avisos: ['La versión nueva deja de tener una regla que la anterior tenía.'] }} />
+  ),
+}

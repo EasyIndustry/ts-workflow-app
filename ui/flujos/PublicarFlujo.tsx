@@ -12,6 +12,12 @@ export interface PublicarFlujoProps {
   version?: number
   problemas: readonly Problema[]
   diferencias: Diferencias
+  /** Se está publicando: el botón espera. */
+  publicando?: boolean
+  /** El sistema no dejó publicar: por qué, y los problemas que encontró, si los dijo. */
+  rechazo?: { mensaje: string; problemas?: readonly { mensaje: string }[] }
+  /** Ya se publicó, y el sistema tiene algo que avisar: la ventana queda abierta para mostrarlo. */
+  publicado?: { version: number; avisos: readonly string[] }
 }
 
 function Grupo({ titulo, lineas, clase }: { titulo: string; lineas: readonly string[]; clase: string }) {
@@ -32,7 +38,26 @@ function Grupo({ titulo, lineas, clase }: { titulo: string; lineas: readonly str
  * La ventana que se abre antes de publicar: qué se verificó y qué cambia respecto de la versión vigente. Con un error no se puede
  * publicar. No calcula nada: muestra lo que le pasan.
  */
-export function PublicarFlujo({ abierta, onCerrar, onPublicar, nombre, version, problemas, diferencias: d }: PublicarFlujoProps) {
+export function PublicarFlujo({ abierta, onCerrar, onPublicar, nombre, version, problemas, diferencias: d, publicando = false, rechazo, publicado }: PublicarFlujoProps) {
+  if (publicado) {
+    return (
+      <Dialogo
+        abierta={abierta}
+        onCerrar={onCerrar}
+        titulo={`Se publicó «${nombre}»`}
+        acciones={
+          <button type="button" className="wf-boton wf-boton-principal" onClick={onCerrar}>
+            Entendido
+          </button>
+        }
+      >
+        <div className="wf-publicar">
+          <p className="wf-publicar-bien">✓ Quedó vigente la versión {publicado.version}.</p>
+          <Grupo titulo="Para tener en cuenta" lineas={publicado.avisos} clase="wf-publicar-avisos" />
+        </div>
+      </Dialogo>
+    )
+  }
   const errores = problemas.filter((p) => p.nivel === 'error')
   const avisos = problemas.filter((p) => p.nivel === 'aviso')
   const nada = !d.hayCambios && d.movidos === 0
@@ -46,13 +71,25 @@ export function PublicarFlujo({ abierta, onCerrar, onPublicar, nombre, version, 
           <button type="button" className="wf-boton" onClick={onCerrar}>
             Cancelar
           </button>
-          <button type="button" className="wf-boton wf-boton-principal" onClick={onPublicar} disabled={errores.length > 0 || nada}>
-            {version ? `Publicar la versión ${version + 1}` : 'Publicar la versión 1'}
+          <button type="button" className="wf-boton wf-boton-principal" onClick={onPublicar} disabled={errores.length > 0 || nada || publicando}>
+            {publicando ? 'Publicando…' : version ? `Publicar la versión ${version + 1}` : 'Publicar la versión 1'}
           </button>
         </>
       }
     >
       <div className="wf-publicar">
+        {rechazo && (
+          <section className="wf-publicar-rechazo" role="alert">
+            <p className="wf-publicar-mal">No se publicó. {rechazo.mensaje}</p>
+            {rechazo.problemas && rechazo.problemas.length > 0 && (
+              <ul className="wf-publicar-errores">
+                {[...new Set(rechazo.problemas.map((p) => p.mensaje))].map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
         <p className="wf-publicar-resumen">
           {version
             ? `Hoy está vigente la versión ${version}. Lo que ya está en curso sigue con su versión; lo nuevo arranca con la ${version + 1}.`

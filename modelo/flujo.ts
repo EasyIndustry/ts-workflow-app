@@ -50,6 +50,12 @@ export interface ContratoDeSubflujo {
   versiones: readonly { version: number; salidas: readonly { id: string; nombre: string }[] }[]
 }
 
+/** Cómo salió una publicación: la versión nueva y lo que el sistema avisa de ella. */
+export interface Publicacion {
+  version: number
+  avisos?: readonly string[]
+}
+
 /**
  * Dónde viven los flujos. La interfaz no sabe si es un servidor o la memoria: recibe uno de estos. Una versión publicada no se
  * edita: los cambios se guardan como borrador y `publicar` los convierte en la versión siguiente.
@@ -61,6 +67,11 @@ export interface Almacen {
   guardarBorrador(id: string, contenido: ContenidoDeFlujo): Promise<void>
   /** Publica el borrador y devuelve el número de la versión nueva. */
   publicar(id: string): Promise<number>
+  /**
+   * Opcional: publica y devuelve además los `avisos` del sistema, lo que la persona tiene que saber de esa publicación (por
+   * ejemplo, algo que la versión nueva deja de tener). Si está, la app usa este en lugar de `publicar`.
+   */
+  publicarConAvisos?(id: string): Promise<Publicacion>
   /** Los subflujos que ya tienen al menos una versión publicada. */
   subflujos(): Promise<ContratoDeSubflujo[]>
   /** El contenido de una versión publicada de un flujo, tal como quedó. */
