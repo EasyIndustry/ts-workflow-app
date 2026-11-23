@@ -17,6 +17,11 @@ export interface OpcionesDeVerificacion {
 /**
  * Revisa que el dibujo de un flujo esté completo: que tenga por dónde entrar y dónde terminar, que cada función sepa qué hace, que
  * no queden salidas sueltas ni nodos a los que no se llega, y que cumpla las reglas de su tipo. `capacidades` son los ids que
- * existen en el registro.
+ * existen en el registro (acciones, efectos y condiciones).
+ *
+ * Lo que le falta a un flujo para poder ejecutarse (una rama sin condición, un evento sin acción) sale como aviso: el dibujo está
+ * completo, pero todavía no dice qué evaluar.
  */
 export declare function verificarFlujo(contenido: ContenidoDeFlujo, capacidades: readonly string[], opciones?: OpcionesDeVerificacion): Problema[];
+/** Los ids de las condiciones del registro que usa un árbol de condición, sea una sola o una combinación. */
+export declare function condicionesDe(condicion: unknown): string[];

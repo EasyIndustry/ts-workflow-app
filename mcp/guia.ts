@@ -4,7 +4,8 @@ export const GUIA = `# Cómo armar un flujo
 Un flujo es un diagrama: nodos unidos por flechas. Vos armás y guardás **borradores**; publicar es siempre de una persona.
 
 ## Pasos
-1. \`capacidades_listar\`: qué puede hacer una función en este sistema (con el schema de sus parámetros).
+1. \`capacidades_listar\`: lo que existe en este sistema, con su \`tipo\`: **accion** (lo que hace una persona: va en los
+   eventos), **efecto** (lo que el flujo hace solo: va en las funciones) y **condicion** (una pregunta: va en las ramas).
 2. \`flujos_listar\` y \`flujo_abrir\`: qué hay y cómo está hecho.
 3. \`flujo_crear\` (si hace falta) y \`flujo_guardar_borrador\` con el contenido completo. Reemplaza el borrador anterior.
 4. La respuesta trae los **problemas** que encontró la verificación. Corregí los de nivel «error» y volvé a guardar.
@@ -24,12 +25,12 @@ La posición (\`position: { x, y }\`) es opcional: sin ella, los nodos se acomod
 ## Nodos
 | type | data | salidas (sourceHandle) |
 |---|---|---|
-| \`evento\`, variante \`inicio\` | \`{ variante: "inicio", nombre }\` | \`salida\` |
+| \`evento\`, variante \`inicio\` | \`{ variante: "inicio", nombre, accion? }\` | \`salida\` |
 | \`evento\`, variante \`fin\` | \`{ variante: "fin", nombre }\` | ninguna |
-| \`evento\`, variante \`espera\` | \`{ variante: "espera", nombre, eventos: [{ id, nombre }] }\` | una por evento: su \`id\` |
-| \`evento\`, variante \`interrupcion\` | \`{ variante: "interrupcion", nombre, excepto?, lateral? }\` | \`salida\` |
+| \`evento\`, variante \`espera\` | \`{ variante: "espera", nombre, eventos: [{ id, nombre, accion? }] }\` | una por evento: su \`id\` |
+| \`evento\`, variante \`interrupcion\` | \`{ variante: "interrupcion", nombre, accion?, excepto?, lateral? }\` | \`salida\` |
 | \`funcion\` | \`{ nombre, capacidad, params }\` | \`salida\` |
-| \`decision\` | \`{ nombre, ramas: [{ id, nombre }] }\` | una por rama: su \`id\`, más \`sino\` |
+| \`decision\` | \`{ nombre, ramas: [{ id, nombre, condicion? }] }\` | una por rama: su \`id\`, más \`sino\` |
 | \`subflujo\` | \`{ nombre, flujo, version, salidas: [{ id, nombre }] }\` | una por salida: su \`id\` |
 
 - **inicio**: lo que arranca el flujo. No recibe flechas.
@@ -37,7 +38,12 @@ La posición (\`position: { x, y }\`) es opcional: sin ella, los nodos se acomod
 - **interrupcion**: un evento que puede llegar en cualquier momento (salvo en las esperas de \`excepto\`) y desvía el flujo. Con
   \`lateral: true\` no lo desvía: hace lo de su camino y el flujo sigue donde estaba. No recibe flechas. Solo en un maestro.
 - Una **espera** con \`eventos: []\` no tiene salidas: se deja solo por una interrupción.
-- **funcion**: hace algo. \`capacidad\` es un id de \`capacidades_listar\` y \`params\` cumple su schema.
+- **accion** (en un inicio, una interrupción o un evento de una espera): el id de la acción del sistema que produce ese evento. La
+  hace una persona; el flujo no la ejecuta, decide si se puede y qué sigue.
+- **funcion**: lo que el flujo hace solo. \`capacidad\` es el id de un efecto (o de una acción que el flujo ejecuta por su cuenta) y
+  \`params\` cumple su schema. No uses una función para lo que hace la persona: eso es el evento.
+- **condicion** (en una rama): \`{ "condicion": id, "params": {…} }\`, o una combinación: \`{ "todas": [...] }\`, \`{ "alguna": [...] }\`,
+  \`{ "no": {…} }\`. Sin condición, la rama solo tiene nombre y el flujo no se puede ejecutar.
 - **decision**: solo lee. Las ramas se evalúan en orden; si ninguna se cumple, sale por \`sino\`. El nombre es la pregunta.
 - **subflujo**: usa otro flujo en una versión fija. \`flujo\`, \`version\` y \`salidas\` salen de \`subflujos_listar\`, tal cual.
 

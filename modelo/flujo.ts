@@ -109,10 +109,17 @@ export function contenidoInicial(tipo: TipoDeFlujo): ContenidoDeFlujo {
   return contenidoDe([{ id: 'inicio', type: 'evento', position: { x: 0, y: 0 }, data: { variante: 'inicio', nombre } }], [])
 }
 
-/** Una capacidad del registro, como la describe el core: lo que un nodo de función puede ejecutar. */
+/**
+ * Una capacidad del registro del sistema, como la describe el core. Según su tipo, va en un lugar distinto del flujo:
+ * - `accion`: algo que hace una persona (o un agente) en el sistema. Es el evento de una espera, y también una función.
+ * - `efecto`: algo que el flujo hace solo. Es una función.
+ * - `condicion`: una pregunta sobre los datos. Es la rama de una decisión.
+ */
 export interface Capacidad {
   id: string
   nombre: string
+  /** Por defecto, `accion`. */
+  tipo?: 'accion' | 'efecto' | 'condicion'
   descripcion?: string
   /** Para agrupar en la lista. */
   grupo?: string

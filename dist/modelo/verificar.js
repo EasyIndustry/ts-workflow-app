@@ -15,7 +15,10 @@ function alcanzables(desde, vecinos) {
 /**
  * Revisa que el dibujo de un flujo esté completo: que tenga por dónde entrar y dónde terminar, que cada función sepa qué hace, que
  * no queden salidas sueltas ni nodos a los que no se llega, y que cumpla las reglas de su tipo. `capacidades` son los ids que
- * existen en el registro.
+ * existen en el registro (acciones, efectos y condiciones).
+ *
+ * Lo que le falta a un flujo para poder ejecutarse (una rama sin condición, un evento sin acción) sale como aviso: el dibujo está
+ * completo, pero todavía no dice qué evaluar.
  */
 export function verificarFlujo(contenido, capacidades, opciones = {}) {
     const problemas = [];
@@ -77,6 +80,24 @@ export function verificarFlujo(contenido, capacidades, opciones = {}) {
         }
         if (n.type === 'decision' && n.data.ramas.length === 0)
             problemas.push({ nivel: 'aviso', mensaje: `${quien} no tiene ramas: siempre sale por «si no».`, nodo: n.id });
+        const aviso = (mensaje) => problemas.push({ nivel: 'aviso', mensaje, nodo: n.id });
+        if (n.type === 'decision') {
+            for (const rama of n.data.ramas) {
+                const usadas = condicionesDe(rama.condicion);
+                if (!rama.condicion)
+                    aviso(`${quien}: la rama «${rama.nombre}» no tiene una condición: todavía no se puede ejecutar.`);
+                for (const id of usadas)
+                    if (!capacidades.includes(id))
+                        error(`${quien}: la rama «${rama.nombre}» usa la condición «${id}», que no existe en este sistema.`, n);
+            }
+        }
+        if (n.type === 'evento') {
+            const acciones = n.data.variante === 'espera' ? (n.data.eventos ?? []).map((e) => [e.nombre, e.accion]) : n.data.variante === 'fin' ? [] : [[n.data.nombre, n.data.accion]];
+            for (const [nombre, accion] of acciones) {
+                if (accion && !capacidades.includes(accion))
+                    error(`${quien}: «${nombre}» usa la acción «${accion}», que no existe en este sistema.`, n);
+            }
+        }
         const salidas = salidasDe(n);
         const sueltas = salidas.filter((s) => !conectadas.has(`${n.id}|${s.id}`) && !(salidas.length === 1 && conectadas.has(`${n.id}|`)));
         for (const s of sueltas)
@@ -109,4 +130,15 @@ export function verificarFlujo(contenido, capacidades, opciones = {}) {
 function tipoSinNombre(n) {
     const [tipo] = rotuloDeNodo(n).split(' «');
     return `Un nodo de tipo ${tipo}`;
+}
+/** Los ids de las condiciones del registro que usa un árbol de condición, sea una sola o una combinación. */
+export function condicionesDe(condicion) {
+    if (Array.isArray(condicion))
+        return condicion.flatMap(condicionesDe);
+    if (typeof condicion !== 'object' || condicion === null)
+        return [];
+    const c = condicion;
+    if (typeof c['condicion'] === 'string')
+        return [c['condicion']];
+    return ['todas', 'alguna', 'no', 'si', 'entonces'].flatMap((clave) => condicionesDe(c[clave]));
 }

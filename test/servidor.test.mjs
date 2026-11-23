@@ -188,3 +188,22 @@ test('enTexto no depende del orden de las claves, y comparar tampoco', async () 
   const d = compararFlujos(nodo({ nombre: 'X', ramas: [{ id: 'a', nombre: 'sí' }] }), nodo({ ramas: [{ nombre: 'sí', id: 'a' }], nombre: 'X' }))
   assert.equal(d.hayCambios, false)
 })
+
+test('verificar: las ramas sin condición y las capacidades que no existen', async () => {
+  const { verificarFlujo } = await import('../dist/servidor/index.js')
+  const ev = (id, variante, nombre, extra = {}) => ({ id, type: 'evento', position: { x: 0, y: 0 }, data: { variante, nombre, ...extra } })
+  const f = (source, target, sourceHandle = 'salida') => ({ id: source + sourceHandle + target, source, target, sourceHandle, targetHandle: null })
+  const flujo = (ramas, accion) => ({
+    nodos: [ev('i', 'inicio', 'Llegó', { accion }), { id: 'd', type: 'decision', position: { x: 0, y: 0 }, data: { nombre: '¿Sirve?', ramas } }, ev('z', 'fin', 'Fin')],
+    flechas: [f('i', 'd'), ...ramas.map((r) => f('d', 'z', r.id)), f('d', 'z', 'sino')],
+  })
+  const ver = (c) => verificarFlujo(c, ['pedidos.cargar', 'total.mayor-que']).map((p) => `${p.nivel}: ${p.mensaje}`)
+  assert.deepEqual(ver(flujo([{ id: 'a', nombre: 'sí', condicion: { condicion: 'total.mayor-que', params: { monto: 5 } } }], 'pedidos.cargar')), [])
+  // Sin condición es un aviso: el dibujo está completo, pero todavía no se puede ejecutar.
+  assert.deepEqual(ver(flujo([{ id: 'a', nombre: 'sí' }])), ['aviso: Decisión «¿Sirve?»: la rama «sí» no tiene una condición: todavía no se puede ejecutar.'])
+  // Lo que no existe en el sistema es un error, también adentro de una combinación.
+  assert.deepEqual(ver(flujo([{ id: 'a', nombre: 'sí', condicion: { todas: [{ condicion: 'total.mayor-que' }, { no: { condicion: 'no.existe' } }] } }], 'otra.accion')), [
+    'error: Inicio «Llegó»: «Llegó» usa la acción «otra.accion», que no existe en este sistema.',
+    'error: Decisión «¿Sirve?»: la rama «sí» usa la condición «no.existe», que no existe en este sistema.',
+  ])
+})

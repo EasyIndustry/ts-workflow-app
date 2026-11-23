@@ -74,3 +74,22 @@
   border-color: #fecaca;
   color: #b91c1c;
 }
+
+.wf-inspector-item {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--wf-borde);
+}
+
+.wf-inspector-json {
+  max-height: 140px;
+  margin: 0;
+  padding: 6px 8px;
+  overflow: auto;
+  border: 1px solid var(--wf-borde);
+  border-radius: 6px;
+  background: var(--wf-fondo);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 11px;
+}

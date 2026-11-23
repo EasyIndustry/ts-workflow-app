@@ -36,7 +36,10 @@ export interface OpcionesDeVerificacion {
 /**
  * Revisa que el dibujo de un flujo esté completo: que tenga por dónde entrar y dónde terminar, que cada función sepa qué hace, que
  * no queden salidas sueltas ni nodos a los que no se llega, y que cumpla las reglas de su tipo. `capacidades` son los ids que
- * existen en el registro.
+ * existen en el registro (acciones, efectos y condiciones).
+ *
+ * Lo que le falta a un flujo para poder ejecutarse (una rama sin condición, un evento sin acción) sale como aviso: el dibujo está
+ * completo, pero todavía no dice qué evaluar.
  */
 export function verificarFlujo(contenido: ContenidoDeFlujo, capacidades: readonly string[], opciones: OpcionesDeVerificacion = {}): Problema[] {
   const problemas: Problema[] = []
@@ -89,6 +92,20 @@ export function verificarFlujo(contenido: ContenidoDeFlujo, capacidades: readonl
       error(`${quien}: un subflujo corre de punta a punta y no puede esperar.`, n)
     }
     if (n.type === 'decision' && n.data.ramas.length === 0) problemas.push({ nivel: 'aviso', mensaje: `${quien} no tiene ramas: siempre sale por «si no».`, nodo: n.id })
+    const aviso = (mensaje: string) => problemas.push({ nivel: 'aviso', mensaje, nodo: n.id })
+    if (n.type === 'decision') {
+      for (const rama of n.data.ramas) {
+        const usadas = condicionesDe(rama.condicion)
+        if (!rama.condicion) aviso(`${quien}: la rama «${rama.nombre}» no tiene una condición: todavía no se puede ejecutar.`)
+        for (const id of usadas) if (!capacidades.includes(id)) error(`${quien}: la rama «${rama.nombre}» usa la condición «${id}», que no existe en este sistema.`, n)
+      }
+    }
+    if (n.type === 'evento') {
+      const acciones = n.data.variante === 'espera' ? (n.data.eventos ?? []).map((e) => [e.nombre, e.accion] as const) : n.data.variante === 'fin' ? [] : [[n.data.nombre, n.data.accion] as const]
+      for (const [nombre, accion] of acciones) {
+        if (accion && !capacidades.includes(accion)) error(`${quien}: «${nombre}» usa la acción «${accion}», que no existe en este sistema.`, n)
+      }
+    }
 
     const salidas = salidasDe(n)
     const sueltas = salidas.filter((s) => !conectadas.has(`${n.id}|${s.id}`) && !(salidas.length === 1 && conectadas.has(`${n.id}|`)))
@@ -119,4 +136,13 @@ export function verificarFlujo(contenido: ContenidoDeFlujo, capacidades: readonl
 function tipoSinNombre(n: NodoGuardado): string {
   const [tipo] = rotuloDeNodo(n).split(' «')
   return `Un nodo de tipo ${tipo}`
+}
+
+/** Los ids de las condiciones del registro que usa un árbol de condición, sea una sola o una combinación. */
+export function condicionesDe(condicion: unknown): string[] {
+  if (Array.isArray(condicion)) return condicion.flatMap(condicionesDe)
+  if (typeof condicion !== 'object' || condicion === null) return []
+  const c = condicion as Record<string, unknown>
+  if (typeof c['condicion'] === 'string') return [c['condicion']]
+  return ['todas', 'alguna', 'no', 'si', 'entonces'].flatMap((clave) => condicionesDe(c[clave]))
 }

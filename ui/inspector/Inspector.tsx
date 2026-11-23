@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
 import { useEditor } from '../editor/contexto'
 import { Campo, Entrada, Lista } from '../formulario/Campo'
 import { FormularioDeEsquema } from '../formulario/FormularioDeEsquema'
+import type { Capacidad } from '../flujos/almacen'
 import type { NodoDeFlujo } from '../nodos'
 import './inspector.css'
 
@@ -17,25 +19,66 @@ export interface InspectorProps {
 
 type Item = { id: string; nombre: string }
 const idNuevo = () => `s-${Math.random().toString(36).slice(2, 8)}`
+const esObjeto = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
-/** Una lista de nombres que se agregan, se renombran y se quitan: las ramas de una decisión o los eventos de una espera. */
-function ListaDeNombres({ titulo, items, onCambio, agregar, nota }: { titulo: string; items: readonly Item[]; onCambio: (items: Item[]) => void; agregar: string; nota?: string }) {
+/** Elegir una capacidad de una lista, agrupada. Si la elegida ya no existe en el sistema, la muestra igual, marcada. */
+function ElegirCapacidad({ id, valor, opciones, vacio, onCambio }: { id?: string; valor: string | undefined; opciones: readonly Capacidad[]; vacio: string; onCambio: (id: string | undefined) => void }) {
+  return (
+    <Lista id={id} value={valor ?? ''} onChange={(e) => onCambio(e.target.value || undefined)} aria-label={id ? undefined : vacio}>
+      <option value="">{vacio}</option>
+      {valor && !opciones.some((c) => c.id === valor) && <option value={valor}>{valor} (no existe)</option>}
+      {opciones.map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.grupo ? `${c.grupo} · ${c.nombre}` : c.nombre}
+        </option>
+      ))}
+    </Lista>
+  )
+}
+
+/**
+ * Una lista de cosas con nombre que se agregan, se renombran y se quitan: las ramas de una decisión o los eventos de una espera.
+ * `extra` dibuja lo propio de cada una debajo de su nombre.
+ */
+function ListaDeNombres<T extends Item>({ titulo, items, onCambio, agregar, nota, extra }: { titulo: string; items: readonly T[]; onCambio: (items: T[]) => void; agregar: string; nota?: string; extra?: (item: T, cambiar: (cambio: Partial<T>) => void) => ReactNode }) {
+  const cambiar = (id: string, cambio: Partial<T>) => onCambio(items.map((x) => (x.id === id ? { ...x, ...cambio } : x)))
   return (
     <fieldset className="wf-grupo">
       <legend>{titulo}</legend>
       {items.map((item, i) => (
-        <div key={item.id} className="wf-inspector-fila">
-          <Entrada aria-label={`${titulo}: ${i + 1}`} value={item.nombre} onChange={(e) => onCambio(items.map((x) => (x.id === item.id ? { ...x, nombre: e.target.value } : x)))} />
-          <button type="button" className="wf-inspector-boton" onClick={() => onCambio(items.filter((x) => x.id !== item.id))} aria-label={`Quitar «${item.nombre}»`}>
-            Quitar
-          </button>
+        <div key={item.id} className="wf-inspector-item">
+          <div className="wf-inspector-fila">
+            <Entrada aria-label={`${titulo}: ${i + 1}`} value={item.nombre} onChange={(e) => cambiar(item.id, { nombre: e.target.value } as Partial<T>)} />
+            <button type="button" className="wf-inspector-boton" onClick={() => onCambio(items.filter((x) => x.id !== item.id))} aria-label={`Quitar «${item.nombre}»`}>
+              Quitar
+            </button>
+          </div>
+          {extra?.(item, (cambio) => cambiar(item.id, cambio))}
         </div>
       ))}
-      <button type="button" className="wf-inspector-boton" onClick={() => onCambio([...items, { id: idNuevo(), nombre: '' }])}>
+      <button type="button" className="wf-inspector-boton" onClick={() => onCambio([...items, { id: idNuevo(), nombre: '' } as T])}>
         {agregar}
       </button>
       {nota && <p className="wf-campo-ayuda">{nota}</p>}
     </fieldset>
+  )
+}
+
+/**
+ * Lo que evalúa una rama: una condición del registro con sus parámetros. Una combinación de varias (armada por un agente o traída
+ * de otro lado) se muestra tal cual, sin editar: para cambiarla hay que elegir una condición simple.
+ */
+function CondicionDeRama({ condicion, opciones, onCambio }: { condicion: Record<string, unknown> | undefined; opciones: readonly Capacidad[]; onCambio: (c: Record<string, unknown> | undefined) => void }) {
+  const simple = condicion && typeof condicion['condicion'] === 'string' ? condicion['condicion'] : undefined
+  const elegida = opciones.find((c) => c.id === simple)
+  return (
+    <>
+      <ElegirCapacidad valor={simple} opciones={opciones} vacio={condicion && !simple ? 'Varias condiciones combinadas' : 'Elegí qué evalúa…'} onCambio={(id) => onCambio(id ? { condicion: id } : undefined)} />
+      {condicion && !simple && <pre className="wf-inspector-json">{JSON.stringify(condicion, null, 2)}</pre>}
+      {elegida?.schemaEntrada && (
+        <FormularioDeEsquema esquema={elegida.schemaEntrada} valor={esObjeto(condicion?.['params']) ? condicion['params'] : {}} onCambio={(params) => onCambio({ condicion: elegida.id, ...(Object.keys(params).length > 0 && { params }) })} />
+      )}
+    </>
   )
 }
 
@@ -94,28 +137,24 @@ function Subflujo({ nodo, onCambio }: { nodo: Extract<NodoDeFlujo, { type: 'subf
 /**
  * El formulario de un nodo: lo que se puede configurar, según su tipo. No sabe dónde está montado (una barra lateral, una tarjeta
  * flotante) ni guarda nada: avisa cada cambio con `onCambio`. Las capacidades y los subflujos salen del contexto del editor.
+ *
+ * Cada tipo de capacidad va en su lugar: las acciones son los eventos (lo que hace una persona), las condiciones son las ramas de
+ * una decisión, y una función es lo que el flujo hace solo (un efecto, o una acción que el flujo ejecuta por su cuenta).
  */
 export function Inspector({ nodo, onCambio, onEliminar }: InspectorProps) {
   const { capacidades } = useEditor()
-  const capacidad = nodo.type === 'funcion' ? capacidades.find((c) => c.id === nodo.data.capacidad) : undefined
+  const acciones = capacidades.filter((c) => (c.tipo ?? 'accion') === 'accion')
+  const condiciones = capacidades.filter((c) => c.tipo === 'condicion')
+  const ejecutables = capacidades.filter((c) => c.tipo !== 'condicion')
+  const capacidad = nodo.type === 'funcion' ? ejecutables.find((c) => c.id === nodo.data.capacidad) : undefined
   return (
     <div className="wf-inspector">
       <Campo etiqueta="Nombre">{(id) => <Entrada id={id} value={nodo.data.nombre} onChange={(e) => onCambio({ nombre: e.target.value })} />}</Campo>
 
       {nodo.type === 'funcion' && (
         <>
-          <Campo etiqueta="Qué hace" ayuda={capacidad?.descripcion}>
-            {(id) => (
-              <Lista id={id} value={nodo.data.capacidad ?? ''} onChange={(e) => onCambio({ capacidad: e.target.value || undefined, params: undefined })}>
-                <option value="">Elegí una capacidad…</option>
-                {nodo.data.capacidad && !capacidad && <option value={nodo.data.capacidad}>{nodo.data.capacidad} (no existe)</option>}
-                {capacidades.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.grupo ? `${c.grupo} · ${c.nombre}` : c.nombre}
-                  </option>
-                ))}
-              </Lista>
-            )}
+          <Campo etiqueta="Qué hace" ayuda={capacidad?.descripcion ?? 'Lo hace el flujo, por su cuenta.'}>
+            {(id) => <ElegirCapacidad id={id} valor={nodo.data.capacidad} opciones={ejecutables} vacio="Elegí una capacidad…" onCambio={(capacidad) => onCambio({ capacidad, params: undefined })} />}
           </Campo>
           {capacidad?.schemaEntrada && (
             <fieldset className="wf-grupo">
@@ -127,7 +166,14 @@ export function Inspector({ nodo, onCambio, onEliminar }: InspectorProps) {
       )}
 
       {nodo.type === 'decision' && (
-        <ListaDeNombres titulo="Ramas" items={nodo.data.ramas} onCambio={(ramas) => onCambio({ ramas })} agregar="Agregar una rama" nota="Se evalúan en orden. Si ninguna se cumple, sale por «si no»." />
+        <ListaDeNombres
+          titulo="Ramas"
+          items={nodo.data.ramas}
+          onCambio={(ramas) => onCambio({ ramas })}
+          agregar="Agregar una rama"
+          nota="Se evalúan en orden. Si ninguna se cumple, sale por «si no»."
+          extra={(rama, cambiar) => <CondicionDeRama condicion={rama.condicion} opciones={condiciones} onCambio={(condicion) => cambiar({ condicion })} />}
+        />
       )}
 
       {nodo.type === 'evento' && nodo.data.variante === 'espera' && (
@@ -136,8 +182,15 @@ export function Inspector({ nodo, onCambio, onEliminar }: InspectorProps) {
           items={nodo.data.eventos ?? []}
           onCambio={(eventos) => onCambio({ eventos })}
           agregar="Agregar un evento"
-          nota="El flujo queda parado acá y sigue por el primero que ocurra."
+          nota="El flujo queda parado acá y sigue por el primero que ocurra. La acción la hace una persona: el flujo decide si se puede."
+          extra={(evento, cambiar) => <ElegirCapacidad valor={evento.accion} opciones={acciones} vacio="Qué acción lo produce…" onCambio={(accion) => cambiar({ accion })} />}
         />
+      )}
+
+      {nodo.type === 'evento' && (nodo.data.variante === 'inicio' || nodo.data.variante === 'interrupcion') && (
+        <Campo etiqueta="Qué acción lo produce" ayuda="La hace una persona en el sistema. El flujo no la ejecuta: decide si se puede y qué sigue.">
+          {(id) => <ElegirCapacidad id={id} valor={nodo.data.accion} opciones={acciones} vacio="Sin elegir" onCambio={(accion) => onCambio({ accion })} />}
+        </Campo>
       )}
 
       {nodo.type === 'evento' && nodo.data.variante === 'interrupcion' && (

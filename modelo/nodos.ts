@@ -6,6 +6,19 @@
 type Nombrado = { id: string; nombre: string }
 
 /**
+ * Un evento que escucha una espera. `accion` es el id de la acción del sistema que lo produce: cuando una persona (o un agente)
+ * hace esa acción, ocurre este evento. El flujo no ejecuta esa acción: decide si se puede.
+ */
+export type EventoEscuchado = Nombrado & { accion?: string }
+
+/**
+ * Una rama de una decisión. `condicion` es lo que evalúa: una condición del registro con sus parámetros
+ * (`{ condicion, params }`) o una combinación de varias (`todas`, `alguna`, `no`). Sin ella, la rama solo tiene nombre y el flujo
+ * no se puede ejecutar.
+ */
+export type Rama = Nombrado & { condicion?: Record<string, unknown> }
+
+/**
  * Un evento: algo que pasa afuera del flujo y que el flujo atrapa.
  * - `inicio`: lo que arranca el flujo.
  * - `fin`: donde termina. En un subflujo, su nombre es el resultado con el que sale.
@@ -17,7 +30,9 @@ export type DatosEvento = {
   variante: 'inicio' | 'espera' | 'fin' | 'interrupcion'
   nombre: string
   /** En una espera: los eventos que escucha, con una salida cada uno. Vacía, la espera solo se deja por una interrupción. */
-  eventos?: readonly Nombrado[]
+  eventos?: readonly EventoEscuchado[]
+  /** En un inicio o una interrupción: el id de la acción del sistema que lo produce. */
+  accion?: string
   /** En una interrupción: los ids de las esperas donde no aplica. */
   excepto?: readonly string[]
   /**
@@ -27,11 +42,14 @@ export type DatosEvento = {
   lateral?: boolean
 }
 
-/** Una función del registro: `capacidad` es su id y `params`, los datos con los que la llama. */
+/**
+ * Algo que el flujo hace por su cuenta: `capacidad` es su id en el registro y `params`, los datos con los que la llama. No es lo que
+ * hace la persona: eso es el evento de una espera.
+ */
 export type DatosFuncion = { nombre: string; capacidad?: string; params?: Record<string, unknown> }
 
 /** Una decisión: evalúa sus ramas en orden y sale por la primera que se cumple, o por «si no». Solo lee. */
-export type DatosDecision = { nombre: string; ramas: readonly Nombrado[] }
+export type DatosDecision = { nombre: string; ramas: readonly Rama[] }
 
 /** Otro flujo usado como un nodo, en una versión fija. Sus salidas son los fines de ese flujo. */
 export type DatosSubflujo = { nombre: string; flujo: string; version: number; salidas: readonly Nombrado[] }

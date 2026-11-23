@@ -3,6 +3,9 @@ import { enTexto } from './flujo.js';
 const CAMPOS = {
     nombre: 'Nombre',
     capacidad: 'Qué hace',
+    accion: 'Qué acción lo produce',
+    params: 'Con qué datos',
+    lateral: 'No desvía el flujo',
     ramas: 'Ramas',
     eventos: 'Eventos que escucha',
     excepto: 'No aplica en',
