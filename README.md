@@ -5,8 +5,9 @@ App genérica de flujos sobre [`ts-workflow-core`](https://github.com/EasyIndust
 una persona vea, controle y publique flujos. No lleva lógica de negocio de nadie: ver [`POLITICA.md`](POLITICA.md).
 
 **Estado:** recién empieza. Hoy tiene el lienzo (orientación vertical u horizontal y acomodo automático), los nodos, el inspector
-(como barra lateral o tarjeta flotante), la configuración, y la lista de flujos con guardado automático del borrador y
-publicación. Todavía guarda en memoria: falta el servidor.
+(como barra lateral o tarjeta flotante), la configuración, la lista de flujos con guardado del borrador y publicación (con
+verificación y comparación contra la versión vigente) y el panel para probar un flujo. Todavía guarda en memoria y prueba con un
+ejecutor de mentira: falta el servidor.
 
 ## Simbología
 

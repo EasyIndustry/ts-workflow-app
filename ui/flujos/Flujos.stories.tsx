@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useMemo } from 'react'
-import { CAPACIDADES_DE_EJEMPLO, FLECHAS_DE_EJEMPLO, NODOS_DE_EJEMPLO } from '../ejemplo'
+import { CAPACIDADES_DE_EJEMPLO, EJECUTOR_DE_EJEMPLO, FLECHAS_DE_EJEMPLO, NODOS_DE_EJEMPLO, REGISTROS_DE_EJEMPLO } from '../ejemplo'
 import { crearAlmacenEnMemoria } from './almacenEnMemoria'
 import { AppDeFlujos } from './AppDeFlujos'
 import { BarraDeFlujo } from './BarraDeFlujo'
@@ -30,7 +30,7 @@ function Demo({ puedePublicar }: { puedePublicar: boolean }) {
   )
   return (
     <div style={{ height: '100vh' }}>
-      <AppDeFlujos almacen={almacen} capacidades={CAPACIDADES_DE_EJEMPLO} puedePublicar={puedePublicar} />
+      <AppDeFlujos almacen={almacen} capacidades={CAPACIDADES_DE_EJEMPLO} puedePublicar={puedePublicar} prueba={{ ejecutor: EJECUTOR_DE_EJEMPLO, registros: REGISTROS_DE_EJEMPLO }} />
     </div>
   )
 }
