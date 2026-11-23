@@ -26,6 +26,7 @@
   "include": [
     "ui",
     "modelo",
+    "cliente",
     ".storybook",
     "vite.config.ts"
   ]

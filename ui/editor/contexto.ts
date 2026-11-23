@@ -1,16 +1,7 @@
 import { createContext, useContext } from 'react'
-import type { ContratoDeSubflujo, TipoDeFlujo } from '../flujos/almacen'
+import type { Capacidad, ContratoDeSubflujo, TipoDeFlujo } from '../flujos/almacen'
 
-/** Una capacidad del registro, como la describe el core: lo que un nodo de función puede ejecutar. */
-export interface Capacidad {
-  id: string
-  nombre: string
-  descripcion?: string
-  /** Para agrupar en la lista. */
-  grupo?: string
-  /** El JSON Schema de sus parámetros. Con él, el inspector arma el formulario. */
-  schemaEntrada?: Record<string, unknown>
-}
+export type { Capacidad }
 
 /** Lo que las piezas del editor necesitan saber del flujo que se está editando y del sistema donde corre. */
 export interface DatosDelEditor {

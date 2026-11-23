@@ -7,10 +7,23 @@ on:
 permissions:
   contents: read
 jobs:
-  ui:
+  app:
     # Un PR desde un fork no corre acá: su código no se ejecuta hasta que alguien lo revise y lo traiga a una rama propia.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: solo-ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PRUEBAS_POSTGRES_URL: postgres://postgres:solo-ci@localhost:5432/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -21,4 +34,6 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
       - run: npm test
+      - name: dist al día
+        run: git diff --exit-code -- dist
       - run: npm run build-storybook

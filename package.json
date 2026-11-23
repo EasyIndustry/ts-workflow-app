@@ -1,14 +1,15 @@
 {
   "name": "ts-workflow-app",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "App genérica de flujos sobre ts-workflow-core y ts-workflow-plugins: la interfaz para que una persona vea, controle y publique flujos. No lleva lógica de negocio de nadie.",
   "type": "module",
   "scripts": {
     "storybook": "storybook dev -p 6610 --host 127.0.0.1 --ci --exact-port",
     "build-storybook": "storybook build",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test test/limites.test.mjs"
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.servidor.json --noEmit",
+    "test": "npm run -s build && node --test test/*.test.mjs",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.servidor.json"
   },
   "dependencies": {
     "@xyflow/react": "12.12.1",
@@ -22,9 +23,33 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.2.1",
+    "pg": "8.23.1",
     "storybook": "10.6.6",
     "typescript": "5.9.3",
     "vite": "8.3.6"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "exports": {
+    "./ui": "./ui/index.ts",
+    "./servidor": {
+      "types": "./dist/servidor/index.d.ts",
+      "default": "./dist/servidor/index.js"
+    },
+    "./cliente": {
+      "types": "./dist/cliente/almacenHttp.d.ts",
+      "default": "./dist/cliente/almacenHttp.js"
+    }
+  },
+  "bin": {
+    "ts-workflow-mcp": "./dist/mcp/servidor.js"
+  },
+  "files": [
+    "ui",
+    "modelo",
+    "cliente",
+    "dist",
+    "LICENSE",
+    "README.md",
+    "POLITICA.md"
+  ]
 }

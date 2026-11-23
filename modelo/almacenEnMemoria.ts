@@ -1,4 +1,4 @@
-import { contenidoDe, contenidoInicial, resumenDeContenido, salidasDeContenido, type Almacen, type ContenidoDeFlujo, type ResumenDeFlujo, type TipoDeFlujo } from './flujo.js'
+import { contenidoDe, contenidoInicial, ErrorNoExiste, resumenDeContenido, salidasDeContenido, type Almacen, type ContenidoDeFlujo, type ResumenDeFlujo, type TipoDeFlujo } from './flujo.js'
 
 interface Guardado {
   id: string
@@ -54,7 +54,7 @@ export function crearAlmacenEnMemoria(iniciales: readonly FlujoInicial[] = [], a
   }
   const buscar = (id: string) => {
     const f = flujos.get(id)
-    if (!f) throw new Error(`No existe el flujo «${id}».`)
+    if (!f) throw new ErrorNoExiste(id)
     return f
   }
   let creados = 0

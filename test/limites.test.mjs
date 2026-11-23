@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 const raiz = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const ui = join(raiz, 'ui')
 const modelo = join(raiz, 'modelo')
+const cliente = join(raiz, 'cliente')
 const PERMITIDOS = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, /^@xyflow\/react(\/.*)?$/, /^elkjs(\/.*)?$/, /^ts-workflow-core$/, /^ts-workflow-plugins(\/.*)?$/]
 const SOLO_EN_STORIES = [/^@storybook\/react-vite$/, /^storybook(\/.*)?$/]
 
@@ -30,7 +31,7 @@ test('ui solo importa React, React Flow, el core, los plugins y archivos propios
       const spec = m[1] ?? m[2]
       if (spec.startsWith('.')) {
         const destino = resolve(f, '..', spec)
-        if (relative(ui, destino).startsWith('..') && relative(modelo, destino).startsWith('..')) malos.push(`${relative(raiz, f)} → ${spec}`)
+        if ([ui, modelo, cliente].every((carpeta) => relative(carpeta, destino).startsWith('..'))) malos.push(`${relative(raiz, f)} → ${spec}`)
       } else if (!permitidos.some((r) => r.test(spec))) malos.push(`${relative(raiz, f)} → ${spec}`)
     }
   }

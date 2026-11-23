@@ -1,0 +1,79 @@
+import { ErrorDeContenido, ErrorNoExiste, validarContenido } from '../modelo/flujo.js';
+import { verificarFlujo } from '../modelo/verificar.js';
+const bien = (cuerpo, estado = 200) => ({ estado, cuerpo });
+const mal = (estado, error, extra = {}) => ({ estado, cuerpo: { error, ...extra } });
+const esObjeto = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
+/** Lo que está mal en el borrador de un flujo, revisado contra las capacidades y los subflujos de este sistema. */
+async function problemasDe(id, opciones) {
+    const [flujo, subflujos, capacidades] = await Promise.all([opciones.almacen.abrir(id), opciones.almacen.subflujos(), opciones.capacidades()]);
+    return verificarFlujo(flujo.contenido, capacidades.map((c) => c.id), { id, tipo: flujo.tipo, subflujos: subflujos.filter((s) => s.id !== id) });
+}
+/**
+ * Atiende un pedido de la app de flujos y devuelve qué responder. El servidor no confía en la pantalla: revisa la forma de lo que
+ * llega y, antes de publicar, vuelve a verificar el flujo.
+ *
+ * | Método y ruta | Qué hace |
+ * |---|---|
+ * | `GET /flujos` | La lista. |
+ * | `POST /flujos` | Crea uno: `{ nombre, tipo }`. |
+ * | `GET /flujos/:id` | Lo abre, con su contenido. |
+ * | `PUT /flujos/:id/borrador` | Guarda el borrador: `{ contenido }`. |
+ * | `GET /flujos/:id/verificacion` | Los problemas del borrador. |
+ * | `POST /flujos/:id/publicar` | Publica el borrador si no tiene errores. |
+ * | `GET /subflujos` | Los subflujos publicados, con sus salidas. |
+ * | `GET /capacidades` | Lo que una función puede hacer en este sistema. |
+ */
+export async function atender(pedido, opciones) {
+    const partes = pedido.ruta.split('?')[0].split('/').filter(Boolean).map(decodeURIComponent);
+    const metodo = pedido.metodo.toUpperCase();
+    const es = (m, ...forma) => metodo === m && partes.length === forma.length && forma.every((f, i) => f === null || f === partes[i]);
+    const id = partes[1] ?? '';
+    const cuerpo = esObjeto(pedido.cuerpo) ? pedido.cuerpo : {};
+    try {
+        if (es('GET', 'flujos'))
+            return bien(await opciones.almacen.listar());
+        if (es('GET', 'subflujos'))
+            return bien(await opciones.almacen.subflujos());
+        if (es('GET', 'capacidades'))
+            return bien(await opciones.capacidades());
+        if (es('GET', 'flujos', null))
+            return bien(await opciones.almacen.abrir(id));
+        if (es('GET', 'flujos', null, 'verificacion'))
+            return bien({ problemas: await problemasDe(id, opciones) });
+        if (es('POST', 'flujos')) {
+            if (!opciones.puedeEditar)
+                return mal(403, 'No tenés permiso para crear flujos.');
+            const nombre = typeof cuerpo['nombre'] === 'string' ? cuerpo['nombre'].trim() : '';
+            const tipo = cuerpo['tipo'] ?? 'maestro';
+            if (!nombre)
+                return mal(400, 'Falta el nombre del flujo.');
+            if (tipo !== 'maestro' && tipo !== 'subflujo')
+                return mal(400, 'El tipo tiene que ser «maestro» o «subflujo».');
+            return bien(await opciones.almacen.crear(nombre, tipo), 201);
+        }
+        if (es('PUT', 'flujos', null, 'borrador')) {
+            if (!opciones.puedeEditar)
+                return mal(403, 'No tenés permiso para editar flujos.');
+            await opciones.almacen.guardarBorrador(id, validarContenido(cuerpo['contenido']));
+            return bien({ guardado: true });
+        }
+        if (es('POST', 'flujos', null, 'publicar')) {
+            if (!opciones.puedePublicar)
+                return mal(403, 'No tenés permiso para publicar flujos.');
+            const problemas = await problemasDe(id, opciones);
+            if (problemas.some((p) => p.nivel === 'error'))
+                return mal(422, 'El flujo tiene problemas que impiden publicarlo.', { problemas });
+            return bien({ version: await opciones.almacen.publicar(id) });
+        }
+        return mal(404, 'No existe esa ruta.');
+    }
+    catch (e) {
+        if (e instanceof ErrorNoExiste)
+            return mal(404, e.message);
+        if (e instanceof ErrorDeContenido)
+            return mal(400, e.message);
+        if (e instanceof Error && e.message === 'No hay cambios para publicar.')
+            return mal(409, e.message);
+        throw e;
+    }
+}
