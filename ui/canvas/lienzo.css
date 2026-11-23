@@ -1,17 +1,7 @@
 /*
- * El aspecto del lienzo. Los colores son variables (--wf-*): quien monta la app las puede pisar para que combine con su sistema.
+ * El aspecto del lienzo: le pasa a React Flow los colores de la app (tema.css).
  */
 .wf-lienzo {
-  --wf-fondo: #f7f8fa;
-  --wf-tarjeta: #ffffff;
-  --wf-borde: #e4e4e7;
-  --wf-texto: #27272a;
-  --wf-tenue: #71717a;
-  --wf-linea: #a1a1aa;
-  --wf-trazo: #71717a;
-  --wf-acento: #3b82f6;
-  --wf-sombra: 0 1px 2px rgb(0 0 0 / 6%), 0 2px 6px rgb(0 0 0 / 8%);
-
   --xy-background-color: var(--wf-fondo);
   --xy-edge-stroke: var(--wf-linea);
   --xy-edge-stroke-width: 1.5;
@@ -20,7 +10,7 @@
   --xy-connectionline-stroke-width: 1.5;
 
   color: var(--wf-texto);
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--wf-fuente);
 }
 
 .wf-lienzo-botones {

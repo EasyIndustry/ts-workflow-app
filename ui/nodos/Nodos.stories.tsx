@@ -1,21 +1,28 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { Edge } from '@xyflow/react'
 import { Lienzo } from '../canvas/Lienzo'
+import type { Orientacion } from '../canvas/orientacion'
 import { TIPOS_DE_NODO, type NodoDeFlujo } from './index'
 
 /**
  * Cada story muestra un tipo de nodo solo en el lienzo. En «Todos» están juntos, sin flechas, para probar cómo se conectan. En
- * «Conectados» ya tienen flechas y están amontonados, para probar «Acomodar».
+ * «Conectados» ya tienen flechas y están amontonados, para probar «Acomodar». La orientación se elige en el panel «Controls».
  */
-function Muestra({ nodos, flechas = [] }: { nodos: NodoDeFlujo[]; flechas?: Edge[] }) {
+function Muestra({ nodos, flechas = [], orientacion }: { nodos: NodoDeFlujo[]; flechas?: Edge[]; orientacion?: Orientacion }) {
   return (
     <div style={{ height: '100vh' }}>
-      <Lienzo<NodoDeFlujo> nodeTypes={TIPOS_DE_NODO} defaultNodes={nodos} defaultEdges={flechas} fitView fitViewOptions={{ maxZoom: 1.5 }} />
+      <Lienzo<NodoDeFlujo> nodeTypes={TIPOS_DE_NODO} orientacion={orientacion} defaultNodes={nodos} defaultEdges={flechas} fitView fitViewOptions={{ maxZoom: 1.5 }} />
     </div>
   )
 }
 
-const meta = { title: 'Nodos', component: Muestra } satisfies Meta<typeof Muestra>
+const meta = {
+  title: 'Nodos',
+  component: Muestra,
+  // La orientación se cambia desde el panel «Controls» de Storybook.
+  args: { orientacion: 'vertical' },
+  argTypes: { orientacion: { control: 'inline-radio', options: ['vertical', 'horizontal'] } },
+} satisfies Meta<typeof Muestra>
 
 export default meta
 
