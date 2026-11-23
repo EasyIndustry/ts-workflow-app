@@ -1,4 +1,5 @@
 import { rotuloDeNodo, salidasDe } from './nodos.js';
+import { enTexto } from './flujo.js';
 const CAMPOS = {
     nombre: 'Nombre',
     capacidad: 'Qué hace',
@@ -41,7 +42,7 @@ export function compararFlujos(antes, despues, nombres = {}) {
         const a = { tipo: v.type, ...v.data };
         const b = { tipo: n.type, ...n.data };
         const cambios = [...new Set([...Object.keys(a), ...Object.keys(b)])]
-            .filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]))
+            .filter((k) => enTexto(a[k]) !== enTexto(b[k]))
             .map((k) => `${CAMPOS[k] ?? k}: ${decir(a[k], nombres)} → ${decir(b[k], nombres)}`);
         if (cambios.length)
             d.cambiados.push({ nodo: rotuloDeNodo(n), cambios });

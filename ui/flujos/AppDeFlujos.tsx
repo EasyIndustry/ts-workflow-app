@@ -3,7 +3,7 @@ import { ProveedorDePreferencias, usePreferencias } from '../configuracion/prefe
 import { Dialogo } from '../dialogo/Dialogo'
 import { Editor, type EditorProps } from '../editor/Editor'
 import type { Capacidad } from '../editor/contexto'
-import type { Almacen, ContenidoDeFlujo, ContratoDeSubflujo, FlujoAbierto, ResumenDeFlujo } from './almacen'
+import { enTexto, type Almacen, type ContenidoDeFlujo, type ContratoDeSubflujo, type FlujoAbierto, type ResumenDeFlujo } from './almacen'
 import { Autoguardado } from './Autoguardado'
 import { BarraDeFlujo } from './BarraDeFlujo'
 import { compararFlujos } from './comparar'
@@ -64,7 +64,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba, tema }: AppDe
     const [flujo, contratos] = await Promise.all([almacen.abrir(id), almacen.subflujos()])
     // Un flujo no se ofrece a sí mismo como subflujo.
     setSubflujos(contratos.filter((c) => c.id !== id))
-    setGuardado(JSON.stringify(flujo.contenido))
+    setGuardado(enTexto(flujo.contenido))
     setSinGuardar(null)
     setFallo(false)
     setAbierto(flujo)
@@ -75,7 +75,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba, tema }: AppDe
     setGuardando(true)
     try {
       await almacen.guardarBorrador(abierto.id, contenido)
-      setGuardado(JSON.stringify(contenido))
+      setGuardado(enTexto(contenido))
       setAbierto((f) => f && { ...f, conBorrador: true })
       setFallo(false)
       return true

@@ -1,4 +1,4 @@
-import type { ContenidoDeFlujo } from './flujo.js';
+import { type ContenidoDeFlujo } from './flujo.js';
 /** En qué se diferencian dos contenidos de un flujo, dicho para una persona. */
 export interface Diferencias {
     agregados: string[];

@@ -66,6 +66,11 @@ export interface Almacen {
 }
 /** Deja de un lienzo solo lo que se guarda, siempre con la misma forma, para poder comparar dos contenidos como texto. */
 export declare function contenidoDe(nodos: readonly NodoGuardado[], flechas: readonly FlechaGuardada[]): ContenidoDeFlujo;
+/**
+ * Un valor como texto, siempre igual para el mismo contenido: las claves de los objetos van ordenadas. Para comparar dos
+ * contenidos sin que importe en qué orden vienen las claves (una base de datos las puede devolver en otro).
+ */
+export declare function enTexto(valor: unknown): string;
 /** Las salidas de un flujo visto como subflujo: sus fines, con el id del nodo y su nombre. */
 export declare function salidasDeContenido(contenido: ContenidoDeFlujo): {
     id: string;

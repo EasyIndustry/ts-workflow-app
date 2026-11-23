@@ -73,6 +73,21 @@ export function contenidoDe(nodos: readonly NodoGuardado[], flechas: readonly Fl
   }
 }
 
+const conClavesOrdenadas = (v: unknown): unknown =>
+  Array.isArray(v)
+    ? v.map(conClavesOrdenadas)
+    : v && typeof v === 'object'
+      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([k, x]) => [k, conClavesOrdenadas(x)]))
+      : v
+
+/**
+ * Un valor como texto, siempre igual para el mismo contenido: las claves de los objetos van ordenadas. Para comparar dos
+ * contenidos sin que importe en qué orden vienen las claves (una base de datos las puede devolver en otro).
+ */
+export function enTexto(valor: unknown): string {
+  return JSON.stringify(conClavesOrdenadas(valor))
+}
+
 /** Las salidas de un flujo visto como subflujo: sus fines, con el id del nodo y su nombre. */
 export function salidasDeContenido(contenido: ContenidoDeFlujo): { id: string; nombre: string }[] {
   return contenido.nodos.flatMap((n) => (n.type === 'evento' && n.data.variante === 'fin' ? [{ id: n.id, nombre: n.data.nombre }] : []))

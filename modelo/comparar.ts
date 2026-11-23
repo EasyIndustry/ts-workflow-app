@@ -1,6 +1,6 @@
 import type { FlechaGuardada, NodoGuardado } from './nodos.js'
 import { rotuloDeNodo, salidasDe } from './nodos.js'
-import type { ContenidoDeFlujo } from './flujo.js'
+import { enTexto, type ContenidoDeFlujo } from './flujo.js'
 
 /** En qué se diferencian dos contenidos de un flujo, dicho para una persona. */
 export interface Diferencias {
@@ -60,7 +60,7 @@ export function compararFlujos(antes: ContenidoDeFlujo, despues: ContenidoDeFluj
     const a = { tipo: v.type, ...v.data } as Record<string, unknown>
     const b = { tipo: n.type, ...n.data } as Record<string, unknown>
     const cambios = [...new Set([...Object.keys(a), ...Object.keys(b)])]
-      .filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]))
+      .filter((k) => enTexto(a[k]) !== enTexto(b[k]))
       .map((k) => `${CAMPOS[k] ?? k}: ${decir(a[k], nombres)} → ${decir(b[k], nombres)}`)
     if (cambios.length) d.cambiados.push({ nodo: rotuloDeNodo(n), cambios })
     else if (v.position.x !== n.position.x || v.position.y !== n.position.y) d.movidos++

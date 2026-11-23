@@ -179,3 +179,12 @@ test('el servidor MCP: un agente arma un borrador y no puede publicar', async ()
   assert.equal((await pedir('tools/call', { name: 'flujo_publicar', arguments: { id } })).error.code, -32602)
   assert.equal((await pedir('otra/cosa')).error.code, -32601)
 })
+
+test('enTexto no depende del orden de las claves, y comparar tampoco', async () => {
+  const { enTexto, compararFlujos } = await import('../dist/servidor/index.js')
+  assert.equal(enTexto({ b: [{ y: 1, x: 2 }], a: 1 }), enTexto({ a: 1, b: [{ x: 2, y: 1 }] }))
+  assert.notEqual(enTexto({ a: [1, 2] }), enTexto({ a: [2, 1] }), 'el orden de una lista sí importa')
+  const nodo = (data) => ({ nodos: [{ id: 'd', type: 'decision', position: { x: 0, y: 0 }, data }], flechas: [] })
+  const d = compararFlujos(nodo({ nombre: 'X', ramas: [{ id: 'a', nombre: 'sí' }] }), nodo({ ramas: [{ nombre: 'sí', id: 'a' }], nombre: 'X' }))
+  assert.equal(d.hayCambios, false)
+})
