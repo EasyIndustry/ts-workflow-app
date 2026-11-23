@@ -2,6 +2,8 @@ import { Campo, Entrada, Lista } from '../formulario/Campo'
 import type { NodoDeFlujo } from '../nodos'
 import './inspector.css'
 
+export { tipoDeNodo } from '../nodos/descripcion'
+
 /** Una capacidad del registro, como la describe el core: lo que un nodo de función puede ejecutar. */
 export interface Capacidad {
   id: string
@@ -15,14 +17,6 @@ export interface InspectorProps {
   capacidades: readonly Capacidad[]
   /** Los datos que cambiaron. Quien monta el inspector los guarda en el nodo. */
   onCambio: (datos: Record<string, unknown>) => void
-}
-
-const VARIANTES = { inicio: 'Inicio', fin: 'Fin', espera: 'Espera', interrupcion: 'Interrupción' }
-
-/** El nombre del tipo de nodo, como se le dice a una persona. */
-export function tipoDeNodo(nodo: NodoDeFlujo): string {
-  if (nodo.type === 'evento') return VARIANTES[nodo.data.variante]
-  return { funcion: 'Función', decision: 'Decisión', subflujo: 'Subflujo' }[nodo.type ?? 'funcion']
 }
 
 /**

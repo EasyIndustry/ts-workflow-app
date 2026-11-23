@@ -1,48 +1,4 @@
-.wf-dialogo {
-  width: min(440px, calc(100vw - 32px));
-  padding: 0;
-  border: 1px solid var(--wf-borde);
-  border-radius: 12px;
-  background: var(--wf-tarjeta);
-  box-shadow: 0 12px 40px rgb(0 0 0 / 20%);
-  color: var(--wf-texto);
-  font-family: var(--wf-fuente);
-}
-
-.wf-dialogo::backdrop {
-  background: rgb(0 0 0 / 40%);
-}
-
-.wf-dialogo-contenido {
-  display: grid;
-  gap: 20px;
-  padding: 20px;
-}
-
-.wf-dialogo-contenido > header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.wf-dialogo-contenido h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.wf-dialogo-contenido > header > button {
-  padding: 6px 10px;
-  border: 1px solid var(--wf-borde);
-  border-radius: 6px;
-  background: var(--wf-tarjeta);
-  color: var(--wf-texto);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.wf-dialogo-contenido fieldset {
+.wf-ajuste {
   display: grid;
   gap: 8px;
   margin: 0;
@@ -50,7 +6,7 @@
   border: 0;
 }
 
-.wf-dialogo-contenido legend {
+.wf-ajuste > legend {
   margin-bottom: 8px;
   padding: 0;
   font-size: 14px;

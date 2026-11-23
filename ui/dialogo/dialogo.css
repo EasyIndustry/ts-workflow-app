@@ -1,0 +1,51 @@
+.wf-dialogo {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: 1px solid var(--wf-borde);
+  border-radius: 12px;
+  background: var(--wf-tarjeta);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 20%);
+  color: var(--wf-texto);
+  font-family: var(--wf-fuente);
+}
+
+.wf-dialogo::backdrop {
+  background: rgb(0 0 0 / 40%);
+}
+
+.wf-dialogo-contenido {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+}
+
+.wf-dialogo-contenido > header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wf-dialogo-contenido h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.wf-dialogo-cerrar {
+  padding: 6px 10px;
+  border: 1px solid var(--wf-borde);
+  border-radius: 6px;
+  background: var(--wf-tarjeta);
+  color: var(--wf-texto);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.wf-dialogo-contenido > footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

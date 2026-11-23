@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { createContext, createElement, useContext, useState, type ReactNode } from 'react'
 
-/** Cómo quiere ver la app cada persona. Se guarda en su navegador. */
+/** Cómo quiere ver y usar la app cada persona. Se guarda en su navegador. */
 export interface Preferencias {
   /** Dónde aparece el inspector al seleccionar un nodo. */
   inspector: 'barra' | 'tarjeta'
   /** Hacia dónde corre el flujo en el lienzo. */
   orientacion: 'vertical' | 'horizontal'
+  /** Si el borrador se guarda solo mientras se edita o solo con el botón «Guardar». */
+  guardado: 'automatico' | 'manual'
 }
 
-export const PREFERENCIAS_DE_FABRICA: Preferencias = { inspector: 'barra', orientacion: 'vertical' }
+export const PREFERENCIAS_DE_FABRICA: Preferencias = { inspector: 'barra', orientacion: 'vertical', guardado: 'automatico' }
 
 /**
  * Los ajustes que muestra la configuración. Sumar uno es agregar una entrada acá y su campo en `Preferencias`: la pantalla se arma
@@ -31,6 +33,14 @@ export const AJUSTES: readonly { clave: keyof Preferencias; titulo: string; opci
       { valor: 'horizontal', nombre: 'Horizontal', detalle: 'El flujo corre de izquierda a derecha.' },
     ],
   },
+  {
+    clave: 'guardado',
+    titulo: 'Guardado del borrador',
+    opciones: [
+      { valor: 'automatico', nombre: 'Automático', detalle: 'Se guarda solo mientras editás. «Guardar» sigue estando para guardar ya.' },
+      { valor: 'manual', nombre: 'Manual', detalle: 'Se guarda solo cuando apretás «Guardar».' },
+    ],
+  },
 ]
 
 const CLAVE = 'wf.preferencias'
@@ -46,8 +56,9 @@ function leer(): Preferencias {
   }
 }
 
-/** Las preferencias de la persona y cómo cambiarlas. Si el navegador no deja guardar, valen mientras la app esté abierta. */
-export function usePreferencias(): [Preferencias, (cambio: Partial<Preferencias>) => void] {
+type Par = [Preferencias, (cambio: Partial<Preferencias>) => void]
+
+function usePreferenciasPropias(): Par {
   const [preferencias, setPreferencias] = useState(leer)
   return [
     preferencias,
@@ -61,4 +72,20 @@ export function usePreferencias(): [Preferencias, (cambio: Partial<Preferencias>
       }
     },
   ]
+}
+
+const Contexto = createContext<Par | null>(null)
+
+/** Comparte las mismas preferencias entre todo lo que tiene adentro: cambiarlas en un lugar vale en todos. */
+export function ProveedorDePreferencias({ children }: { children: ReactNode }) {
+  return createElement(Contexto.Provider, { value: usePreferenciasPropias() }, children)
+}
+
+/**
+ * Las preferencias de la persona y cómo cambiarlas. Adentro de un `ProveedorDePreferencias` son las compartidas; afuera, cada pieza
+ * tiene las suyas. Si el navegador no deja guardar, valen mientras la app esté abierta.
+ */
+export function usePreferencias(): Par {
+  const propias = usePreferenciasPropias()
+  return useContext(Contexto) ?? propias
 }

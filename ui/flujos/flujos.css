@@ -1,0 +1,197 @@
+.wf-boton {
+  padding: 6px 12px;
+  border: 1px solid var(--wf-borde);
+  border-radius: 8px;
+  background: var(--wf-tarjeta);
+  color: var(--wf-texto);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wf-boton-principal {
+  border-color: var(--wf-acento);
+  background: var(--wf-acento);
+  color: #ffffff;
+}
+
+.wf-boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wf-flujos {
+  box-sizing: border-box;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  max-width: 640px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 24px 16px;
+  color: var(--wf-texto);
+  font-family: var(--wf-fuente);
+}
+
+.wf-flujos h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.wf-flujos-nuevo {
+  display: flex;
+  gap: 8px;
+}
+
+.wf-flujos-vacio {
+  margin: 0;
+  color: var(--wf-tenue);
+  font-size: 14px;
+}
+
+.wf-flujos-lista {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wf-flujos-lista button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--wf-borde);
+  border-radius: 8px;
+  background: var(--wf-tarjeta);
+  box-shadow: var(--wf-sombra);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wf-flujos-lista button:hover {
+  border-color: var(--wf-acento);
+}
+
+.wf-flujos-lista strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.wf-flujos-lista small {
+  color: var(--wf-tenue);
+  font-size: 12px;
+}
+
+.wf-app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+  height: 100%;
+  font-family: var(--wf-fuente);
+}
+
+.wf-app-editor {
+  min-height: 0;
+}
+
+.wf-barra-flujo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--wf-borde);
+  background: var(--wf-tarjeta);
+  color: var(--wf-texto);
+  font-family: var(--wf-fuente);
+  font-size: 14px;
+}
+
+.wf-barra-flujo > strong {
+  font-weight: 600;
+}
+
+.wf-barra-flujo-estado {
+  flex: 1;
+  color: var(--wf-tenue);
+  font-size: 12px;
+}
+
+.wf-barra-flujo-error {
+  color: #b91c1c;
+}
+
+/* La ventana de publicar: la verificación y los cambios. */
+.wf-publicar {
+  display: grid;
+  gap: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.wf-publicar p {
+  margin: 0;
+}
+
+.wf-publicar-resumen,
+.wf-publicar-nada {
+  color: var(--wf-tenue);
+}
+
+.wf-publicar section {
+  display: grid;
+  gap: 8px;
+}
+
+.wf-publicar h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.wf-publicar h4 {
+  margin: 4px 0 0;
+  color: var(--wf-tenue);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wf-publicar ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.wf-publicar-bien,
+.wf-publicar-mas {
+  color: #15803d;
+}
+
+.wf-publicar-mal,
+.wf-publicar-errores,
+.wf-publicar-menos {
+  color: #b91c1c;
+}
+
+.wf-publicar-avisos {
+  color: #92400e;
+}
+
+.wf-publicar-cambios ul {
+  margin-top: 4px;
+  color: var(--wf-tenue);
+}
+
+.wf-salir-texto {
+  margin: 0;
+  font-size: 14px;
+}
