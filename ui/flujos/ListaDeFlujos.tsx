@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Entrada } from '../formulario/Campo'
+import { DataTable, type DataTableColumn, type EstadoOrden } from '../tabla/DataTable'
 import '../tema.css'
 import type { ResumenDeFlujo } from './almacen'
 import './flujos.css'
@@ -8,48 +9,89 @@ export interface ListaDeFlujosProps {
   flujos: readonly ResumenDeFlujo[]
   onAbrir: (id: string) => void
   onCrear: (nombre: string) => void
+  /** Mientras se traen los flujos. */
+  cargando?: boolean
 }
 
-/** El estado de un flujo, dicho en una línea. */
-export function estadoDeFlujo(f: Pick<ResumenDeFlujo, 'version' | 'conBorrador'>): string {
+/** En qué anda un flujo, en pocas palabras. */
+export function estadoDeFlujo(f: Pick<ResumenDeFlujo, 'version' | 'conBorrador'>): 'Publicado' | 'Con cambios sin publicar' | 'Sin publicar' {
   if (!f.version) return 'Sin publicar'
-  return f.conBorrador ? `Versión ${f.version} vigente · con cambios sin publicar` : `Versión ${f.version} vigente`
+  return f.conBorrador ? 'Con cambios sin publicar' : 'Publicado'
 }
 
-/** La lista de flujos: abrir uno o crear uno nuevo. No guarda nada: avisa lo que la persona pidió. */
-export function ListaDeFlujos({ flujos, onAbrir, onCrear }: ListaDeFlujosProps) {
+const fecha = new Intl.DateTimeFormat('es', { dateStyle: 'short', timeStyle: 'short' })
+const cuando = (iso?: string) => (iso ? fecha.format(new Date(iso)) : '—')
+
+const CLASE_DE_ESTADO = { Publicado: 'wf-estado wf-estado-bien', 'Con cambios sin publicar': 'wf-estado wf-estado-aviso', 'Sin publicar': 'wf-estado' }
+
+const COLUMNAS: DataTableColumn<ResumenDeFlujo>[] = [
+  { key: 'nombre', header: 'Nombre', sortable: true, cell: (f) => <strong className="wf-flujos-nombre">{f.nombre}</strong> },
+  { key: 'estado', header: 'Estado', sortable: true, nowrap: true, cell: (f) => <span className={CLASE_DE_ESTADO[estadoDeFlujo(f)]}>{estadoDeFlujo(f)}</span> },
+  { key: 'version', header: 'Versión vigente', sortable: true, align: 'right', cell: (f) => f.version ?? '—' },
+  { key: 'inicios', header: 'Arranca con', muted: true, truncate: '16rem', title: (f) => f.inicios.join(', '), cell: (f) => f.inicios.join(', ') || '—' },
+  { key: 'nodos', header: 'Nodos', sortable: true, align: 'right', muted: true, cell: (f) => f.nodos },
+  { key: 'editadoEl', header: 'Última edición', sortable: true, nowrap: true, muted: true, cell: (f) => cuando(f.editadoEl) },
+  { key: 'publicadoEl', header: 'Publicado', sortable: true, nowrap: true, muted: true, cell: (f) => cuando(f.publicadoEl) },
+]
+
+/** El valor por el que se ordena cada columna. */
+const VALOR: Record<string, (f: ResumenDeFlujo) => string | number> = {
+  nombre: (f) => f.nombre.toLocaleLowerCase('es'),
+  estado: (f) => estadoDeFlujo(f),
+  version: (f) => f.version ?? 0,
+  nodos: (f) => f.nodos,
+  editadoEl: (f) => f.editadoEl ?? '',
+  publicadoEl: (f) => f.publicadoEl ?? '',
+}
+
+/** Ordena una copia de los flujos según la columna pedida. Sin orden, quedan como vinieron. */
+export function ordenarFlujos(flujos: readonly ResumenDeFlujo[], orden: EstadoOrden | null): ResumenDeFlujo[] {
+  const valor = orden && VALOR[orden.key]
+  if (!orden || !valor) return [...flujos]
+  const signo = orden.direccion === 'asc' ? 1 : -1
+  return [...flujos].sort((a, b) => {
+    const x = valor(a)
+    const y = valor(b)
+    return signo * (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'es'))
+  })
+}
+
+/** La lista de flujos, como tabla: ordenar, abrir uno haciendo click en su fila o crear uno nuevo. No guarda nada: avisa lo pedido. */
+export function ListaDeFlujos({ flujos, onAbrir, onCrear, cargando = false }: ListaDeFlujosProps) {
   const [nombre, setNombre] = useState('')
+  const [orden, setOrden] = useState<EstadoOrden | null>({ key: 'nombre', direccion: 'asc' })
   return (
     <div className="wf-flujos">
-      <h1>Flujos</h1>
-      <form
-        className="wf-flujos-nuevo"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (!nombre.trim()) return
-          onCrear(nombre.trim())
-          setNombre('')
-        }}
-      >
-        <Entrada value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre del flujo nuevo" aria-label="Nombre del flujo nuevo" />
-        <button type="submit" className="wf-boton wf-boton-principal" disabled={!nombre.trim()}>
-          Crear flujo
-        </button>
-      </form>
-      {flujos.length === 0 ? (
-        <p className="wf-flujos-vacio">Todavía no hay flujos.</p>
-      ) : (
-        <ul className="wf-flujos-lista">
-          {flujos.map((f) => (
-            <li key={f.id}>
-              <button type="button" onClick={() => onAbrir(f.id)}>
-                <strong>{f.nombre}</strong>
-                <small>{estadoDeFlujo(f)}</small>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <header>
+        <h1>Flujos</h1>
+        <form
+          className="wf-flujos-nuevo"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!nombre.trim()) return
+            onCrear(nombre.trim())
+            setNombre('')
+          }}
+        >
+          <Entrada value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre del flujo nuevo" aria-label="Nombre del flujo nuevo" />
+          <button type="submit" className="wf-boton wf-boton-principal" disabled={!nombre.trim()}>
+            Crear flujo
+          </button>
+        </form>
+      </header>
+      <DataTable
+        caption="Flujos"
+        rows={ordenarFlujos(flujos, orden)}
+        columns={COLUMNAS}
+        getRowId={(f) => f.id}
+        onRowClick={(f) => onAbrir(f.id)}
+        sort={orden}
+        onSortChange={setOrden}
+        scrollInterno
+        isLoading={cargando}
+        filasCargando={3}
+        vacio="Todavía no hay flujos."
+      />
     </div>
   )
 }

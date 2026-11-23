@@ -23,15 +23,21 @@
 
 .wf-flujos {
   box-sizing: border-box;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-content: start;
-  max-width: 640px;
   height: 100%;
-  margin: 0 auto;
-  padding: 24px 16px;
+  padding: 24px;
   color: var(--wf-texto);
   font-family: var(--wf-fuente);
+}
+
+.wf-flujos > header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .wf-flujos h1 {
@@ -43,49 +49,32 @@
 .wf-flujos-nuevo {
   display: flex;
   gap: 8px;
+  width: min(420px, 100%);
 }
 
-.wf-flujos-vacio {
-  margin: 0;
-  color: var(--wf-tenue);
-  font-size: 14px;
-}
-
-.wf-flujos-lista {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.wf-flujos-lista button {
-  display: grid;
-  gap: 4px;
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--wf-borde);
-  border-radius: 8px;
-  background: var(--wf-tarjeta);
-  box-shadow: var(--wf-sombra);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.wf-flujos-lista button:hover {
-  border-color: var(--wf-acento);
-}
-
-.wf-flujos-lista strong {
-  font-size: 14px;
+.wf-flujos-nombre {
   font-weight: 500;
 }
 
-.wf-flujos-lista small {
+.wf-estado {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--wf-borde);
+  border-radius: 999px;
   color: var(--wf-tenue);
   font-size: 12px;
+}
+
+.wf-estado-bien {
+  border-color: #86efac;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.wf-estado-aviso {
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #92400e;
 }
 
 .wf-app {

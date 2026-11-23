@@ -15,6 +15,14 @@ export interface ResumenDeFlujo {
   version?: number
   /** Si tiene cambios guardados que todavía no se publicaron. */
   conBorrador: boolean
+  /** Los nombres de sus inicios: qué lo arranca. */
+  inicios: readonly string[]
+  /** Cuántos nodos tiene. */
+  nodos: number
+  /** Cuándo se guardó por última vez, en formato ISO. */
+  editadoEl?: string
+  /** Cuándo se publicó la versión vigente, en formato ISO. */
+  publicadoEl?: string
 }
 
 export interface FlujoAbierto extends ResumenDeFlujo {

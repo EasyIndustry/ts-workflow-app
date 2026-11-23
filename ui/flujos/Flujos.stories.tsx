@@ -23,8 +23,8 @@ function Demo({ puedePublicar }: { puedePublicar: boolean }) {
   const almacen = useMemo(
     () =>
       crearAlmacenEnMemoria([
-        { id: 'pedidos', nombre: 'Pedidos', version: 2, contenido: { nodos: NODOS_DE_EJEMPLO, flechas: FLECHAS_DE_EJEMPLO } },
-        { id: 'reclamos', nombre: 'Reclamos', contenido: { nodos: NODOS_DE_EJEMPLO.slice(0, 2), flechas: FLECHAS_DE_EJEMPLO.slice(0, 1) } },
+        { id: 'pedidos', nombre: 'Pedidos', version: 2, contenido: { nodos: NODOS_DE_EJEMPLO, flechas: FLECHAS_DE_EJEMPLO }, editadoEl: '2026-11-10T14:05:00Z', publicadoEl: '2026-11-10T14:20:00Z' },
+        { id: 'reclamos', nombre: 'Reclamos', contenido: { nodos: NODOS_DE_EJEMPLO.slice(0, 2), flechas: FLECHAS_DE_EJEMPLO.slice(0, 1) }, editadoEl: '2026-11-22T09:30:00Z' },
       ]),
     [],
   )
@@ -41,21 +41,19 @@ export const AppCompleta: Story = { name: 'App completa', render: () => <Demo pu
 /** Lo mismo para una persona que no puede publicar: el botón no aparece. */
 export const SinPermisoDePublicar: Story = { name: 'Sin permiso de publicar', render: () => <Demo puedePublicar={false} /> }
 
-export const Lista: Story = {
-  render: () => (
-    <ListaDeFlujos
-      flujos={[
-        { id: 'a', nombre: 'Pedidos', version: 2, conBorrador: false },
-        { id: 'b', nombre: 'Devoluciones', version: 5, conBorrador: true },
-        { id: 'c', nombre: 'Reclamos', conBorrador: true },
-      ]}
-      onAbrir={() => {}}
-      onCrear={() => {}}
-    />
-  ),
-}
+const lista = { onAbrir: () => {}, onCrear: () => {} }
+const FLUJOS = [
+  { id: 'a', nombre: 'Pedidos', version: 2, conBorrador: false, inicios: ['Llegó un pedido'], nodos: 5, editadoEl: '2026-11-10T14:05:00Z', publicadoEl: '2026-11-10T14:20:00Z' },
+  { id: 'b', nombre: 'Devoluciones', version: 5, conBorrador: true, inicios: ['Pidieron devolver', 'Venció el plazo'], nodos: 12, editadoEl: '2026-11-22T09:30:00Z', publicadoEl: '2026-10-02T18:00:00Z' },
+  { id: 'c', nombre: 'Reclamos', conBorrador: true, inicios: ['Llegó un reclamo'], nodos: 2, editadoEl: '2026-11-23T11:12:00Z' },
+]
 
-export const ListaVacia: Story = { name: 'Lista vacía', render: () => <ListaDeFlujos flujos={[]} onAbrir={() => {}} onCrear={() => {}} /> }
+/** La tabla de flujos: se ordena por cualquier columna y se abre un flujo haciendo click en su fila. */
+export const Lista: Story = { render: () => <div style={{ height: '100vh' }}><ListaDeFlujos {...lista} flujos={FLUJOS} /></div> }
+
+export const ListaVacia: Story = { name: 'Lista vacía', render: () => <ListaDeFlujos {...lista} flujos={[]} /> }
+
+export const ListaCargando: Story = { name: 'Lista cargando', render: () => <ListaDeFlujos {...lista} flujos={[]} cargando /> }
 
 const barra = { onVolver: () => {}, onGuardar: () => {}, onPublicar: () => {} }
 
