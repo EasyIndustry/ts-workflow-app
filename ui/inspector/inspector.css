@@ -51,3 +51,26 @@
 .wf-tarjeta-flotante-agarre:active {
   cursor: grabbing;
 }
+
+.wf-inspector-fila {
+  display: flex;
+  gap: 6px;
+}
+
+.wf-inspector-boton {
+  padding: 6px 10px;
+  border: 1px solid var(--wf-borde);
+  border-radius: 6px;
+  background: var(--wf-tarjeta);
+  color: var(--wf-texto);
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wf-inspector-eliminar {
+  justify-self: start;
+  border-color: #fecaca;
+  color: #b91c1c;
+}

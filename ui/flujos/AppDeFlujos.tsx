@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { ProveedorDePreferencias, usePreferencias } from '../configuracion/preferencias'
 import { Dialogo } from '../dialogo/Dialogo'
 import { Editor, type EditorProps } from '../editor/Editor'
-import type { Capacidad } from '../inspector/Inspector'
-import type { Almacen, ContenidoDeFlujo, FlujoAbierto, ResumenDeFlujo } from './almacen'
+import type { Capacidad } from '../editor/contexto'
+import type { Almacen, ContenidoDeFlujo, ContratoDeSubflujo, FlujoAbierto, ResumenDeFlujo } from './almacen'
 import { Autoguardado } from './Autoguardado'
 import { BarraDeFlujo } from './BarraDeFlujo'
 import { compararFlujos } from './comparar'
@@ -42,6 +42,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
   const [preferencias] = usePreferencias()
   const [flujos, setFlujos] = useState<readonly ResumenDeFlujo[] | null>(null)
   const [abierto, setAbierto] = useState<FlujoAbierto | null>(null)
+  const [subflujos, setSubflujos] = useState<readonly ContratoDeSubflujo[]>([])
   const [guardado, setGuardado] = useState('')
   const [sinGuardar, setSinGuardar] = useState<ContenidoDeFlujo | null>(null)
   const [guardando, setGuardando] = useState(false)
@@ -54,7 +55,9 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
   }, [almacen])
 
   async function abrir(id: string) {
-    const flujo = await almacen.abrir(id)
+    const [flujo, contratos] = await Promise.all([almacen.abrir(id), almacen.subflujos()])
+    // Un flujo no se ofrece a sí mismo como subflujo.
+    setSubflujos(contratos.filter((c) => c.id !== id))
     setGuardado(JSON.stringify(flujo.contenido))
     setSinGuardar(null)
     setFallo(false)
@@ -101,8 +104,14 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
     setSaliendo(true)
   }
 
+  /** Pasa a otro flujo (el subflujo de un nodo). Antes guarda lo pendiente como borrador, para no perderlo. */
+  async function irA(id: string) {
+    if (sinGuardar && !(await guardar(sinGuardar))) return
+    await abrir(id)
+  }
+
   if (!abierto) {
-    return <ListaDeFlujos flujos={flujos ?? []} cargando={!flujos} onAbrir={(id) => void abrir(id)} onCrear={(nombre) => void almacen.crear(nombre).then((f) => abrir(f.id))} />
+    return <ListaDeFlujos flujos={flujos ?? []} cargando={!flujos} onAbrir={(id) => void abrir(id)} onCrear={(nombre, tipo) => void almacen.crear(nombre, tipo).then((f) => abrir(f.id))} />
   }
 
   const automatico = preferencias.guardado === 'automatico'
@@ -112,7 +121,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
   return (
     <div className="wf-app">
       <BarraDeFlujo
-        nombre={abierto.nombre}
+        nombre={`${abierto.nombre}${abierto.tipo === 'subflujo' ? ' · subflujo' : ''}`}
         version={abierto.version}
         estado={estado}
         onVolver={() => void volver()}
@@ -121,7 +130,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
         onPublicar={puedePublicar ? () => setPublicando(true) : undefined}
       />
       <div className="wf-app-editor">
-        <Editor key={abierto.id} capacidades={capacidades} prueba={prueba} defaultNodes={abierto.contenido.nodos} defaultEdges={abierto.contenido.flechas} fitView fitViewOptions={{ maxZoom: 1.2 }}>
+        <Editor key={abierto.id} capacidades={capacidades} subflujos={subflujos} tipo={abierto.tipo} onAbrirFlujo={(id) => void irA(id)} prueba={prueba} defaultNodes={abierto.contenido.nodos} defaultEdges={abierto.contenido.flechas} fitView fitViewOptions={{ maxZoom: 1.2 }}>
           <Autoguardado guardado={guardado} onCambio={setSinGuardar} onGuardar={automatico ? (c) => void guardar(c) : undefined} />
         </Editor>
       </div>
@@ -131,7 +140,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
         onPublicar={() => void publicar()}
         nombre={abierto.nombre}
         version={abierto.version}
-        problemas={verificarFlujo(borrador, capacidades.map((c) => c.id))}
+        problemas={verificarFlujo(borrador, capacidades.map((c) => c.id), { id: abierto.id, tipo: abierto.tipo, subflujos })}
         diferencias={compararFlujos(abierto.publicado ?? VACIO, borrador, Object.fromEntries(capacidades.map((c) => [c.id, c.nombre])))}
       />
       <Dialogo

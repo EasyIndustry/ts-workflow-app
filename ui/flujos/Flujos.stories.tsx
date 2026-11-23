@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useMemo } from 'react'
-import { CAPACIDADES_DE_EJEMPLO, EJECUTOR_DE_EJEMPLO, FLECHAS_DE_EJEMPLO, NODOS_DE_EJEMPLO, REGISTROS_DE_EJEMPLO } from '../ejemplo'
+import { CAPACIDADES_DE_EJEMPLO, EJECUTOR_DE_EJEMPLO, FLECHAS_DE_EJEMPLO, NODOS_DE_EJEMPLO, REGISTROS_DE_EJEMPLO, SUBFLUJO_DE_EJEMPLO } from '../ejemplo'
 import { crearAlmacenEnMemoria } from './almacenEnMemoria'
+import type { ResumenDeFlujo } from './almacen'
 import { AppDeFlujos } from './AppDeFlujos'
 import { BarraDeFlujo } from './BarraDeFlujo'
 import { compararFlujos } from './comparar'
@@ -25,6 +26,7 @@ function Demo({ puedePublicar }: { puedePublicar: boolean }) {
       crearAlmacenEnMemoria([
         { id: 'pedidos', nombre: 'Pedidos', version: 2, contenido: { nodos: NODOS_DE_EJEMPLO, flechas: FLECHAS_DE_EJEMPLO }, editadoEl: '2026-11-10T14:05:00Z', publicadoEl: '2026-11-10T14:20:00Z' },
         { id: 'reclamos', nombre: 'Reclamos', contenido: { nodos: NODOS_DE_EJEMPLO.slice(0, 2), flechas: FLECHAS_DE_EJEMPLO.slice(0, 1) }, editadoEl: '2026-11-22T09:30:00Z' },
+        { id: 'revision', nombre: 'Revisar un pedido', tipo: 'subflujo', version: 1, contenido: SUBFLUJO_DE_EJEMPLO, editadoEl: '2026-11-05T10:00:00Z', publicadoEl: '2026-11-05T10:10:00Z' },
       ]),
     [],
   )
@@ -35,17 +37,21 @@ function Demo({ puedePublicar }: { puedePublicar: boolean }) {
   )
 }
 
-/** La lista, abrir un flujo, editarlo, guardar, publicar (con su verificación y sus cambios) y volver. */
+/**
+ * La lista, abrir un flujo, agregarle nodos, guardar, probar, publicar (con su verificación y sus cambios) y volver. Hay un
+ * subflujo publicado, «Revisar un pedido»: agregá un nodo Subflujo en «Pedidos», elegilo en el inspector y abrilo desde ahí.
+ */
 export const AppCompleta: Story = { name: 'App completa', render: () => <Demo puedePublicar /> }
 
 /** Lo mismo para una persona que no puede publicar: el botón no aparece. */
 export const SinPermisoDePublicar: Story = { name: 'Sin permiso de publicar', render: () => <Demo puedePublicar={false} /> }
 
 const lista = { onAbrir: () => {}, onCrear: () => {} }
-const FLUJOS = [
-  { id: 'a', nombre: 'Pedidos', version: 2, conBorrador: false, inicios: ['Llegó un pedido'], nodos: 5, editadoEl: '2026-11-10T14:05:00Z', publicadoEl: '2026-11-10T14:20:00Z' },
-  { id: 'b', nombre: 'Devoluciones', version: 5, conBorrador: true, inicios: ['Pidieron devolver', 'Venció el plazo'], nodos: 12, editadoEl: '2026-11-22T09:30:00Z', publicadoEl: '2026-10-02T18:00:00Z' },
-  { id: 'c', nombre: 'Reclamos', conBorrador: true, inicios: ['Llegó un reclamo'], nodos: 2, editadoEl: '2026-11-23T11:12:00Z' },
+const FLUJOS: ResumenDeFlujo[] = [
+  { id: 'a', nombre: 'Pedidos', tipo: 'maestro', usadoPor: [], version: 2, conBorrador: false, inicios: ['Llegó un pedido'], nodos: 5, editadoEl: '2026-11-10T14:05:00Z', publicadoEl: '2026-11-10T14:20:00Z' },
+  { id: 'b', nombre: 'Devoluciones', tipo: 'maestro', usadoPor: [], version: 5, conBorrador: true, inicios: ['Pidieron devolver', 'Venció el plazo'], nodos: 12, editadoEl: '2026-11-22T09:30:00Z', publicadoEl: '2026-10-02T18:00:00Z' },
+  { id: 'd', nombre: 'Revisar un pedido', tipo: 'subflujo', usadoPor: ['Pedidos', 'Devoluciones'], version: 1, conBorrador: false, inicios: ['Al ser llamado'], nodos: 4, editadoEl: '2026-11-05T10:00:00Z', publicadoEl: '2026-11-05T10:10:00Z' },
+  { id: 'c', nombre: 'Reclamos', tipo: 'maestro', usadoPor: [], conBorrador: true, inicios: ['Llegó un reclamo'], nodos: 2, editadoEl: '2026-11-23T11:12:00Z' },
 ]
 
 /** La tabla de flujos: se ordena por cualquier columna y se abre un flujo haciendo click en su fila. */

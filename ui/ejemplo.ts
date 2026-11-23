@@ -1,14 +1,28 @@
 import type { Edge } from '@xyflow/react'
-import type { Capacidad } from './inspector/Inspector'
+import type { Capacidad } from './editor/contexto'
 import type { NodoDeFlujo } from './nodos'
 import type { RegistroDePrueba } from './prueba/PanelDePrueba'
 import type { Ejecutor } from './prueba/recorrido'
 
 /** Un flujo genérico para las stories. No es el flujo de nadie. */
 export const CAPACIDADES_DE_EJEMPLO: Capacidad[] = [
-  { id: 'avisos.enviar', nombre: 'Enviar un aviso', descripcion: 'Le avisa a una persona o a un grupo.' },
-  { id: 'registros.actualizar', nombre: 'Actualizar un registro', descripcion: 'Cambia campos de un registro.' },
-  { id: 'tareas.crear', nombre: 'Crear una tarea', descripcion: 'Deja una tarea pendiente para alguien.' },
+  {
+    id: 'avisos.enviar',
+    nombre: 'Enviar un aviso',
+    descripcion: 'Le avisa a una persona o a un grupo.',
+    schemaEntrada: {
+      type: 'object',
+      required: ['para', 'mensaje'],
+      properties: { para: { type: 'string', title: 'Para quién' }, mensaje: { type: 'string', title: 'Mensaje' }, urgente: { type: 'boolean', title: 'Urgente' } },
+    },
+  },
+  {
+    id: 'registros.actualizar',
+    nombre: 'Actualizar un registro',
+    descripcion: 'Cambia campos de un registro.',
+    schemaEntrada: { type: 'object', required: ['campos'], properties: { campos: { type: 'object', title: 'Campos', properties: { estado: { type: 'string', enum: ['nuevo', 'en curso', 'cerrado'] }, nota: { type: 'string' } } } } },
+  },
+  { id: 'tareas.crear', nombre: 'Crear una tarea', descripcion: 'Deja una tarea pendiente para alguien.', schemaEntrada: { type: 'object', properties: { titulo: { type: 'string', title: 'Título' }, dias: { type: 'integer', title: 'Plazo en días' } } } },
   { id: 'documentos.generar', nombre: 'Generar un documento', descripcion: 'Arma un documento a partir de una plantilla.' },
 ]
 
@@ -44,4 +58,15 @@ export const EJECUTOR_DE_EJEMPLO: Ejecutor = async (nodo, { entrada }) => {
     return { salida: total > 1000 ? nodo.data.ramas[0]?.id : 'sino', datos: { total } }
   }
   return {}
+}
+
+/** Un subflujo de ejemplo: revisa un pedido y termina aprobado o rechazado. */
+export const SUBFLUJO_DE_EJEMPLO = {
+  nodos: [
+    { id: 'inicio', type: 'evento', position: { x: 60, y: 0 }, data: { variante: 'inicio', nombre: 'Al ser llamado' } },
+    { id: 'tiene', type: 'decision', position: { x: 20, y: 110 }, data: { nombre: '¿Tiene todos los datos?', ramas: [{ id: 'si', nombre: 'sí' }] } },
+    { id: 'aprobado', type: 'evento', position: { x: -80, y: 320 }, data: { variante: 'fin', nombre: 'aprobado' } },
+    { id: 'rechazado', type: 'evento', position: { x: 200, y: 320 }, data: { variante: 'fin', nombre: 'rechazado' } },
+  ] as NodoDeFlujo[],
+  flechas: [flecha('inicio', 'tiene'), flecha('tiene', 'aprobado', 'si'), flecha('tiene', 'rechazado', 'sino')],
 }

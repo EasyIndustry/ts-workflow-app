@@ -49,7 +49,12 @@
 .wf-flujos-nuevo {
   display: flex;
   gap: 8px;
-  width: min(420px, 100%);
+  width: min(560px, 100%);
+}
+
+.wf-flujos-nuevo > select {
+  flex: none;
+  width: 130px;
 }
 
 .wf-flujos-nombre {
