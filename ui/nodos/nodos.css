@@ -34,13 +34,28 @@
 
 .wf-nodo-salidas {
   display: flex;
-  justify-content: space-around;
   gap: 8px;
   margin-top: 6px;
   font-size: 10px;
-  opacity: 0.8;
 }
 
+/* Cada salida con nombre lleva su punto: abajo del rótulo en vertical, a su derecha en horizontal. El corrimiento lo saca hasta
+   el borde del nodo (el relleno más el borde). */
 .wf-nodo-salidas > span {
+  position: relative;
   flex: 1;
+}
+
+.wf-nodo-vertical .wf-nodo-salidas > span > .react-flow__handle {
+  bottom: -9px;
+}
+
+.wf-nodo-horizontal .wf-nodo-salidas {
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+.wf-nodo-horizontal .wf-nodo-salidas > span > .react-flow__handle {
+  right: -13px;
 }
