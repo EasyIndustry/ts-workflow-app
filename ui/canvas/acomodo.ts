@@ -8,6 +8,8 @@ export interface Puerto {
   y: number
   ancho: number
   alto: number
+  /** Si por ese punto entran flechas o salen. */
+  tipo?: 'entrada' | 'salida'
 }
 
 export interface CajaDeNodo {
@@ -29,6 +31,17 @@ export interface Flecha {
 export type Posiciones = Record<string, { x: number; y: number }>
 
 const elk = new ELK()
+
+/**
+ * En qué capa va un nodo por lo que es: donde el flujo termina (no tiene por dónde salir) va en la última, y por donde entra (no
+ * recibe flechas) va en la primera. Así los finales quedan todos al final y no a mitad de camino.
+ */
+function capaDe(n: CajaDeNodo): Record<string, string> {
+  const con = (tipo: Puerto['tipo']) => n.puertos?.some((p) => p.tipo === tipo)
+  if (con('entrada') && !con('salida')) return { 'elk.layered.layering.layerConstraint': 'LAST' }
+  if (con('salida') && !con('entrada')) return { 'elk.layered.layering.layerConstraint': 'FIRST' }
+  return {}
+}
 
 /**
  * Acomoda los nodos en capas siguiendo las flechas: de arriba hacia abajo en vertical, de izquierda a derecha en horizontal.
@@ -53,7 +66,7 @@ export async function acomodar(nodos: readonly CajaDeNodo[], flechas: readonly F
       width: n.ancho,
       height: n.alto,
       ...(n.puertos?.length && {
-        layoutOptions: { 'elk.portConstraints': 'FIXED_POS' },
+        layoutOptions: { 'elk.portConstraints': 'FIXED_POS', ...capaDe(n) },
         ports: n.puertos.map((p) => ({ id: p.id, x: p.x, y: p.y, width: p.ancho, height: p.alto })),
       }),
     })),

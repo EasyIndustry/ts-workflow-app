@@ -21,7 +21,7 @@ export function BotonAcomodar() {
           (puntos?.[tipo] ?? []).map((p) => {
             const id = idDePuerto(n.id, tipo, p.id)
             primero[`${n.id}/${tipo}`] ??= id
-            return { id, x: p.x, y: p.y, ancho: p.width, alto: p.height }
+            return { id, x: p.x, y: p.y, ancho: p.width, alto: p.height, tipo: tipo === 'source' ? ('salida' as const) : ('entrada' as const) }
           }),
         )
         return { id: n.id, ancho: n.measured?.width ?? n.width ?? 150, alto: n.measured?.height ?? n.height ?? 40, puertos }

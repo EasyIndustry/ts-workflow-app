@@ -257,3 +257,121 @@
 .wf-nodo-rechazo > .wf-nodo-tipo {
   color: #dc2626;
 }
+
+/*
+ * La decisión como peine: el rombo y, de cada salida, un tramo recto con el texto a lo largo. El punto de conexión va al final
+ * del tramo, así la flecha recién se curva después del texto.
+ */
+.wf-peine {
+  display: flex;
+  flex-direction: column;
+  color: var(--wf-texto, #27272a);
+  font-size: 12px;
+}
+
+.wf-peine.wf-nodo-horizontal {
+  flex-direction: row;
+}
+
+.wf-peine-rombo {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.wf-peine-dientes {
+  display: flex;
+}
+
+.wf-nodo-horizontal > .wf-peine-dientes {
+  flex-direction: column;
+}
+
+.wf-peine-diente {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 18px;
+  color: var(--wf-tenue, #71717a);
+  font-size: 10px;
+  line-height: 12px;
+  /* El tramo recto: una línea por el medio del diente, de punta a punta. */
+  background: linear-gradient(var(--wf-linea, #a1a1aa), var(--wf-linea, #a1a1aa)) center / 1.5px 100% no-repeat;
+}
+
+.wf-peine-diente > b {
+  font-weight: 400;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  padding: 4px 0 8px;
+  margin-left: calc(50% + 3px);
+}
+
+/* El tramo que falta entre el borde del rombo y el comienzo del diente. */
+.wf-peine-diente > i {
+  position: absolute;
+  bottom: 100%;
+  left: calc(50% - 0.75px);
+  width: 1.5px;
+  background: var(--wf-linea, #a1a1aa);
+}
+
+.wf-nodo-horizontal > .wf-peine-dientes > .wf-peine-diente {
+  align-items: flex-start;
+  min-width: 18px;
+  min-height: 0;
+  background-size: 100% 1.5px;
+}
+
+/* En horizontal el texto va derecho, apoyado sobre su tramo. */
+.wf-nodo-horizontal > .wf-peine-dientes > .wf-peine-diente > b {
+  writing-mode: horizontal-tb;
+  margin: -2px 0 0;
+  padding: 0 10px 0 4px;
+  line-height: 11px;
+}
+
+.wf-nodo-horizontal > .wf-peine-dientes > .wf-peine-diente > i {
+  top: calc(50% - 0.75px);
+  right: 100%;
+  bottom: auto;
+  left: auto;
+  width: auto;
+  height: 1.5px;
+}
+
+.wf-peine .react-flow__handle {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--wf-linea, #a1a1aa);
+  background: var(--wf-tarjeta, #ffffff);
+}
+
+/* La decisión como tarjeta: una fila por rama, con su punto a la derecha. */
+.wf-decision-tarjeta {
+  text-align: left;
+}
+
+.wf-decision-filas {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+  color: var(--wf-tenue, #71717a);
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.wf-decision-filas > span {
+  position: relative;
+  padding-top: 3px;
+  border-top: 1px solid var(--wf-borde, #e4e4e7);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.wf-decision-filas > span > .react-flow__handle {
+  right: -15px;
+}

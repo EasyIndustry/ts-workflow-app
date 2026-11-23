@@ -2,17 +2,21 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { Edge } from '@xyflow/react'
 import { Lienzo } from '../canvas/Lienzo'
 import type { Orientacion } from '../canvas/orientacion'
+import { ContextoEstiloDeDecision, type EstiloDeDecision } from './estilo'
 import { TIPOS_DE_NODO, type NodoDeFlujo } from './index'
 
 /**
  * Cada story muestra un tipo de nodo solo en el lienzo. En «Todos» están juntos, sin flechas, para probar cómo se conectan. En
- * «Conectados» ya tienen flechas y están amontonados, para probar «Acomodar». La orientación se elige en el panel «Controls».
+ * «Conectados» ya tienen flechas y están amontonados, para probar «Acomodar». La orientación y cómo se
+ * dibujan las decisiones se eligen en el panel «Controls».
  */
-function Muestra({ nodos, flechas = [], orientacion }: { nodos: NodoDeFlujo[]; flechas?: Edge[]; orientacion?: Orientacion }) {
+function Muestra({ nodos, flechas = [], orientacion, decision = 'peine' }: { nodos: NodoDeFlujo[]; flechas?: Edge[]; orientacion?: Orientacion; decision?: EstiloDeDecision }) {
   return (
+    <ContextoEstiloDeDecision.Provider value={decision}>
     <div style={{ height: '100vh' }}>
-      <Lienzo<NodoDeFlujo> nodeTypes={TIPOS_DE_NODO} orientacion={orientacion} defaultNodes={nodos} defaultEdges={flechas} fitView fitViewOptions={{ maxZoom: 1.5 }} />
+      <Lienzo<NodoDeFlujo> nodeTypes={TIPOS_DE_NODO} orientacion={orientacion} defaultNodes={nodos} defaultEdges={flechas} fitView fitViewOptions={{ maxZoom: 1.5 }} minZoom={0.1} />
     </div>
+    </ContextoEstiloDeDecision.Provider>
   )
 }
 
@@ -20,8 +24,11 @@ const meta = {
   title: 'Nodos',
   component: Muestra,
   // La orientación se cambia desde el panel «Controls» de Storybook.
-  args: { orientacion: 'vertical' },
-  argTypes: { orientacion: { control: 'inline-radio', options: ['vertical', 'horizontal'] } },
+  args: { orientacion: 'vertical', decision: 'peine' },
+  argTypes: {
+    orientacion: { control: 'inline-radio', options: ['vertical', 'horizontal'] },
+    decision: { control: 'inline-radio', options: ['peine', 'tarjeta', 'rombo'] },
+  },
 } satisfies Meta<typeof Muestra>
 
 export default meta
@@ -101,3 +108,19 @@ export const Conectados: Story = {
     ],
   },
 }
+
+const ESTADOS = ['Pendiente de revisión', 'Presupuestado', 'Presupuesto aprobado', 'Esperando al cliente', 'Esperando documentación', 'Esperando una prueba', 'Esperando el retiro', 'Esperando un repuesto', 'En espera de disponibilidad', 'Cerrado', 'Cerrado sin servicio', 'Cerrado fuera de plazo', 'Anulado']
+const muchas: NodoDeFlujo = { id: 'muchas', type: 'decision', ...en(0, 0), data: { nombre: '¿En qué estado estaba cargado?', ramas: ESTADOS.map((nombre, i) => ({ id: `r${i}`, nombre: `El campo «estado» es ${nombre}` })) } }
+const destinos: NodoDeFlujo[] = ESTADOS.map((nombre, i) => ({ id: `e${i}`, type: 'evento', ...en(i * 40, 300 + i * 10), data: { variante: 'espera', nombre, eventos: [] } }))
+const conDestinos = {
+  nodos: [{ ...inicio, ...en(0, -150) }, muchas, ...destinos, { id: 'otro', type: 'evento' as const, ...en(600, 400), data: { variante: 'espera' as const, nombre: 'Otro estado', eventos: [] } }],
+  flechas: [flecha('inicio', 'muchas'), ...ESTADOS.map((_, i) => flecha('muchas', `e${i}`, `r${i}`)), flecha('muchas', 'otro', 'sino')],
+}
+
+/**
+ * Una decisión con catorce salidas, conectada, para comparar las tres formas de dibujarla. Apretá «Acomodar» y probá las dos
+ * orientaciones desde «Controls».
+ */
+export const DecisionConMuchasRamasPeine: Story = { name: 'Decisión con muchas ramas: peine', args: { ...conDestinos, decision: 'peine' } }
+export const DecisionConMuchasRamasTarjeta: Story = { name: 'Decisión con muchas ramas: tarjeta', args: { ...conDestinos, decision: 'tarjeta' } }
+export const DecisionConMuchasRamasRombo: Story = { name: 'Decisión con muchas ramas: rombo fijo', args: { ...conDestinos, decision: 'rombo' } }

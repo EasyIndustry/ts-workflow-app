@@ -7,6 +7,7 @@ import type { ContratoDeSubflujo, TipoDeFlujo } from '../flujos/almacen'
 import { BarraLateral } from '../inspector/BarraLateral'
 import { TarjetaFlotante } from '../inspector/TarjetaFlotante'
 import { TIPOS_DE_NODO, type NodoDeFlujo } from '../nodos'
+import { ContextoEstiloDeDecision } from '../nodos/estilo'
 import { PanelDePrueba, type RegistroDePrueba } from '../prueba/PanelDePrueba'
 import type { Ejecutor } from '../prueba/recorrido'
 import { ContextoDelEditor, type Capacidad } from './contexto'
@@ -44,6 +45,7 @@ export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro
   const datos = useMemo(() => ({ capacidades, subflujos, tipo, onAbrirFlujo }), [capacidades, subflujos, tipo, onAbrirFlujo])
   return (
     <ContextoDelEditor.Provider value={datos}>
+      <ContextoEstiloDeDecision.Provider value={preferencias.decision}>
       {/* El proveedor arranca ya con los nodos y las flechas: lo que mira el lienzo los ve desde el primer dibujo. */}
       <ReactFlowProvider initialNodes={lienzo.defaultNodes} initialEdges={lienzo.defaultEdges}>
         <div className="wf-editor">
@@ -80,6 +82,7 @@ export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro
         </div>
         <Configuracion abierta={configurando} onCerrar={() => setConfigurando(false)} preferencias={preferencias} onCambio={cambiarPreferencias} />
       </ReactFlowProvider>
+      </ContextoEstiloDeDecision.Provider>
     </ContextoDelEditor.Provider>
   )
 }

@@ -93,3 +93,57 @@
   font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   font-size: 11px;
 }
+
+/* El inspector vive en un lugar angosto: los campos se achican y nada se sale por el costado. */
+.wf-barra-lateral {
+  overflow-x: hidden;
+}
+
+.wf-inspector,
+.wf-inspector .wf-campo,
+.wf-inspector .wf-formulario,
+.wf-inspector .wf-grupo,
+.wf-inspector-item,
+.wf-inspector-fila > .wf-control {
+  min-width: 0;
+}
+
+.wf-inspector {
+  gap: 12px;
+}
+
+.wf-inspector .wf-campo {
+  gap: 4px;
+}
+
+.wf-inspector .wf-campo > label {
+  font-size: 12px;
+}
+
+.wf-inspector .wf-control {
+  height: 30px;
+  padding: 2px 8px;
+  font-size: 13px;
+}
+
+.wf-inspector select.wf-control {
+  padding-right: 26px;
+  background-position: right 6px center;
+  text-overflow: ellipsis;
+}
+
+.wf-inspector textarea.wf-control-json {
+  height: auto;
+  padding: 6px 8px;
+}
+
+.wf-inspector .wf-grupo {
+  gap: 8px;
+  padding: 8px;
+}
+
+.wf-inspector-boton {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
