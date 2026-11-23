@@ -49,6 +49,8 @@ export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro
         <div className="wf-editor">
           <div className="wf-editor-lienzo">
             <Lienzo<NodoDeFlujo>
+              // Un flujo grande tiene que poder verse entero: el mínimo de fábrica (50%) no alcanza.
+              minZoom={0.1}
               {...lienzo}
               nodeTypes={TIPOS_DE_NODO}
               orientacion={preferencias.orientacion}
