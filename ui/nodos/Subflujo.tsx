@@ -1,4 +1,5 @@
 import type { Node, NodeProps } from '@xyflow/react'
+import type { DatosSubflujo } from '../../modelo/nodos.js'
 import { useEditor } from '../editor/contexto'
 import { NodoBase } from './NodoBase'
 
@@ -7,7 +8,7 @@ import { NodoBase } from './NodoBase'
  * de sus salidas con nombre, que son los nodos de fin del subflujo. Se referencia con una versión fija, así publicar el subflujo
  * no cambia los flujos que ya lo usan.
  */
-export type NodoSubflujo = Node<{ nombre: string; flujo: string; version: number; salidas: readonly { id: string; nombre: string }[] }, 'subflujo'>
+export type NodoSubflujo = Node<DatosSubflujo, 'subflujo'>
 
 export function Subflujo({ data }: NodeProps<NodoSubflujo>) {
   // Muestra el nombre del flujo que usa, no su id. Si todavía no eligió uno, lo dice.

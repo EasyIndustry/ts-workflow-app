@@ -1,5 +1,6 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 import { Fragment } from 'react'
+import { SALIDA_SI_NO, type DatosDecision } from '../../modelo/nodos.js'
 import { useOrientacion } from '../canvas/orientacion'
 import { puntoEnRombo } from './geometria'
 import { PuntoDeSalida, useRemedirPuntos } from './NodoBase'
@@ -8,9 +9,9 @@ import { PuntoDeSalida, useRemedirPuntos } from './NodoBase'
  * Una decisión: el rombo de siempre. Evalúa condiciones en orden y sale por la primera rama que se cumple. Solo lee, nunca
  * escribe. Siempre tiene la salida «si no», así una decisión nunca queda sin resolver.
  */
-export type NodoDecision = Node<{ nombre: string; ramas: readonly { id: string; nombre: string }[] }, 'decision'>
+export type NodoDecision = Node<DatosDecision, 'decision'>
 
-export const SALIDA_SI_NO = 'sino'
+export { SALIDA_SI_NO }
 
 export function Decision({ data }: NodeProps<NodoDecision>) {
   const horizontal = useOrientacion() === 'horizontal'

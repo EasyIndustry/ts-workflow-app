@@ -1,5 +1,6 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 import { Fragment } from 'react'
+import type { DatosEvento } from '../../modelo/nodos.js'
 import { useOrientacion } from '../canvas/orientacion'
 import { puntoEnCirculo } from './geometria'
 import { NodoBase, PuntoDeSalida, useRemedirPuntos } from './NodoBase'
@@ -14,17 +15,7 @@ import { NodoBase, PuntoDeSalida, useRemedirPuntos } from './NodoBase'
  *   nueva: actúa sobre la que está corriendo. Equivale a sumarle esa salida a todas las esperas, menos las de `excepto`. Es el
  *   mismo círculo de borde doble, sin entrada.
  */
-export type NodoEvento = Node<
-  {
-    variante: 'inicio' | 'espera' | 'fin' | 'interrupcion'
-    nombre: string
-    /** En una espera: los eventos que escucha, con una salida cada uno. */
-    eventos?: readonly { id: string; nombre: string }[]
-    /** En una interrupción: los ids de las esperas donde no aplica. */
-    excepto?: readonly string[]
-  },
-  'evento'
->
+export type NodoEvento = Node<DatosEvento, 'evento'>
 
 const UNA_SALIDA = [{ id: 'salida', unica: true }]
 const SIN_SALIDAS: readonly { id: string; nombre?: string }[] = []
