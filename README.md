@@ -16,6 +16,7 @@ Los nodos siguen los símbolos de siempre, para que cualquiera que lea diagramas
 | **Inicio** | óvalo (terminador) | Lo que arranca el flujo. |
 | **Fin** | óvalo (terminador) | Donde termina. En un subflujo, su nombre es el resultado con el que sale. |
 | **Espera** | círculo de borde doble | El flujo se detiene hasta que pase uno de los eventos que escucha. Es el único nodo donde queda parado. |
+| **Interrupción** | el mismo círculo de borde doble, sin entrada | Un evento que puede llegar en cualquier momento y desvía el flujo que está corriendo. |
 | **Función** | rectángulo (proceso) | Hace algo y sigue. Es una capacidad del registro. |
 | **Decisión** | rombo | Evalúa condiciones y sale por una rama. Solo lee. Siempre tiene «si no». |
 | **Subflujo** | rectángulo con doble barra (proceso predefinido) | Otro flujo, con versión fija, que corre de punta a punta. |

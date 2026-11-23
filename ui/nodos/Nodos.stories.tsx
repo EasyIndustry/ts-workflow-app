@@ -30,6 +30,7 @@ const espera: NodoDeFlujo = {
   ...en(0, 0),
   data: { variante: 'espera', nombre: 'Esperando la respuesta', eventos: [{ id: 'respondio', nombre: 'respondió' }, { id: 'vencio', nombre: 'pasaron 3 días' }] },
 }
+const interrupcion: NodoDeFlujo = { id: 'interrupcion', type: 'evento', ...en(0, 0), data: { variante: 'interrupcion', nombre: 'Cancelaron el pedido', excepto: ['espera'] } }
 const fin: NodoDeFlujo = { id: 'fin', type: 'evento', ...en(0, 0), data: { variante: 'fin', nombre: 'Cerrado' } }
 const funcion: NodoDeFlujo = { id: 'funcion', type: 'funcion', ...en(0, 0), data: { nombre: 'Avisar al responsable', capacidad: 'avisos.enviar' } }
 const decision: NodoDeFlujo = {
@@ -45,8 +46,8 @@ const subflujo: NodoDeFlujo = {
   data: { nombre: 'Revisar el pedido', flujo: 'revision', version: 3, salidas: [{ id: 'aprobado', nombre: 'aprobado' }, { id: 'rechazado', nombre: 'rechazado' }] },
 }
 
-/** Las tres variantes del evento: inicio y fin (óvalo) y espera (círculo de borde doble). */
-export const Evento: Story = { args: { nodos: [inicio, { ...espera, ...en(260, 0) }, { ...fin, ...en(560, 0) }] } }
+/** Las cuatro variantes del evento: inicio y fin (óvalo), espera (círculo de borde doble) e interrupción (el mismo círculo, sin entrada). */
+export const Evento: Story = { args: { nodos: [inicio, { ...espera, ...en(260, 0) }, { ...interrupcion, ...en(260, 120) }, { ...fin, ...en(560, 0) }] } }
 export const Funcion: Story = { args: { nodos: [funcion] } }
 export const Decision: Story = { args: { nodos: [decision] } }
 export const Subflujo: Story = { args: { nodos: [subflujo] } }
@@ -60,6 +61,7 @@ export const Todos: Story = {
       { ...funcion, ...en(300, 160) },
       { ...subflujo, ...en(0, 340) },
       { ...fin, ...en(360, 350) },
+      { ...interrupcion, ...en(560, 160) },
     ],
   },
 }
@@ -76,6 +78,7 @@ export const Conectados: Story = {
       { ...espera, ...en(160, 120) },
       { ...fin, ...en(200, 150) },
       { id: 'rechazado', type: 'evento', ...en(240, 180), data: { variante: 'fin', nombre: 'Rechazado' } },
+      { ...interrupcion, ...en(280, 210) },
     ],
     flechas: [
       flecha('inicio', 'decision'),
@@ -87,6 +90,7 @@ export const Conectados: Story = {
       flecha('funcion', 'fin'),
       flecha('espera', 'fin', 'respondio'),
       flecha('espera', 'rechazado', 'vencio'),
+      flecha('interrupcion', 'rechazado'),
     ],
   },
 }
