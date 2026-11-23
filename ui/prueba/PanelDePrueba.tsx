@@ -27,15 +27,18 @@ const bonito = (valor: unknown) => JSON.stringify(valor ?? {}, null, 2)
 
 /**
  * El panel para probar el flujo que está en el lienzo. Tres sectores apilados que se abren y se cierran: la entrada (un registro o
- * los datos a mano), la salida (con qué terminó, o el error) y la traza (cada nodo por el que pasó). «Probar» corre todo; «Paso a
- * paso» resuelve un nodo por vez. Mientras tanto marca en el lienzo por dónde va. Va al lado del lienzo, adentro de su proveedor.
+ * los datos a mano), la salida (con qué terminó, o el error) y la traza (cada nodo por el que pasó). «Probar» corre todo; los
+ * botones de doble triángulo van un paso atrás o adelante. Mientras tanto marca en el lienzo por dónde va. Va al lado del lienzo, adentro de su proveedor.
  */
 export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePruebaProps) {
   const { getNodes, getEdges, updateNode } = useReactFlow<NodoDeFlujo>()
   const [registro, setRegistro] = useState(registros[0]?.id ?? '')
   const [texto, setTexto] = useState(() => bonito(registros[0]?.datos))
   const [entradaMal, setEntradaMal] = useState(false)
-  const [recorrido, setRecorrido] = useState<Recorrido | null>(null)
+  // Cada estado por el que pasó la prueba, para poder volver atrás sin ejecutar nada de nuevo.
+  const [historia, setHistoria] = useState<readonly Recorrido[]>([])
+  const [indice, setIndice] = useState(0)
+  const recorrido = historia[indice] ?? null
   const [corriendo, setCorriendo] = useState(false)
 
   // Marca en el lienzo por dónde va la prueba. La marca es solo de la pantalla: no se guarda con el flujo.
@@ -68,25 +71,40 @@ export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePru
     const listo = preparar()
     if (!listo) return
     setCorriendo(true)
-    let r = iniciar(listo.contenido)
-    setRecorrido(r)
-    while (sigue(r)) {
+    let pasos = [iniciar(listo.contenido)]
+    const mostrar = () => {
+      setHistoria(pasos)
+      setIndice(pasos.length - 1)
+    }
+    mostrar()
+    for (let r = pasos[0]!; sigue(r); ) {
       r = await avanzar(listo.contenido, r, listo.entrada, ejecutor)
-      setRecorrido(r)
+      pasos = [...pasos, r]
+      mostrar()
     }
     setCorriendo(false)
   }
 
-  async function unPaso() {
+  /** Un paso adelante. Si ya se había pasado por ahí, lo vuelve a mostrar; si no, resuelve el nodo que sigue. */
+  async function adelante() {
+    if (indice < historia.length - 1) return setIndice(indice + 1)
     const listo = preparar()
     if (!listo) return
+    // Sin una prueba empezada, el primer paso la deja parada en el inicio.
+    if (!recorrido) {
+      setHistoria([iniciar(listo.contenido)])
+      setIndice(0)
+      return
+    }
     setCorriendo(true)
-    // Si no hay una prueba a medias, arranca una y queda parada en el inicio: el primer paso solo muestra dónde empieza.
-    if (!recorrido || !sigue(recorrido)) setRecorrido(iniciar(listo.contenido))
-    else setRecorrido(await avanzar(listo.contenido, recorrido, listo.entrada, ejecutor))
+    const nuevo = await avanzar(listo.contenido, recorrido, listo.entrada, ejecutor)
+    setHistoria([...historia, nuevo])
+    setIndice(historia.length)
     setCorriendo(false)
   }
 
+  const enElUltimo = indice >= historia.length - 1
+  const puedeAdelante = !corriendo && (!recorrido || !enElUltimo || sigue(recorrido))
   const siguiente = recorrido?.actual && getNodes().find((n) => n.id === recorrido.actual)
   return (
     <aside className="wf-prueba" aria-label="Probar el flujo">
@@ -97,19 +115,22 @@ export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePru
         </button>
       </header>
       <div className="wf-prueba-controles">
+        <button type="button" className="wf-prueba-boton" onClick={() => setIndice(indice - 1)} disabled={corriendo || indice === 0} aria-label="Un paso atrás" title="Un paso atrás">
+          ◀◀
+        </button>
         <button type="button" className="wf-prueba-boton wf-prueba-principal" onClick={() => void probar()} disabled={corriendo}>
           ▶ Probar
         </button>
-        <button type="button" className="wf-prueba-boton" onClick={() => void unPaso()} disabled={corriendo}>
-          Paso a paso
+        <button type="button" className="wf-prueba-boton" onClick={() => void adelante()} disabled={!puedeAdelante} aria-label="Un paso adelante" title="Un paso adelante">
+          ▶▶
         </button>
-        <button type="button" className="wf-prueba-boton" onClick={() => setRecorrido(null)} disabled={corriendo || !recorrido}>
+        <button type="button" className="wf-prueba-boton" onClick={() => setHistoria([])} disabled={corriendo || !recorrido}>
           Reiniciar
         </button>
       </div>
       <p className="wf-prueba-estado" role="status">
         {!recorrido && 'Todavía no se probó.'}
-        {recorrido && sigue(recorrido) && (corriendo ? 'Probando…' : `En pausa. Sigue: ${siguiente ? rotuloDeNodo(siguiente) : 'el próximo nodo'}.`)}
+        {recorrido && sigue(recorrido) && (corriendo && enElUltimo ? 'Probando…' : `En pausa. Sigue: ${siguiente ? rotuloDeNodo(siguiente) : 'el próximo nodo'}.`)}
         {recorrido?.estado === 'terminado' && `Terminó en «${recorrido.resultado?.fin}», en ${recorrido.traza.length} pasos.`}
         {recorrido?.estado === 'error' && 'Se detuvo por un error.'}
       </p>
