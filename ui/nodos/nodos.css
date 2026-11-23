@@ -4,7 +4,6 @@
  */
 .wf-nodo {
   min-width: 150px;
-  padding: 10px 14px;
   border: 1px solid var(--wf-borde, #e4e4e7);
   border-radius: 8px;
   background: var(--wf-tarjeta, #ffffff);
@@ -27,11 +26,21 @@
   background: var(--wf-tarjeta, #ffffff);
 }
 
+/* La franja del tipo: arriba de todo, separada del nombre por una línea. */
 .wf-nodo-tipo {
+  padding: 4px 14px;
+  border-bottom: 1px solid var(--wf-borde, #e4e4e7);
+  border-radius: 7px 7px 0 0;
+  background: var(--wf-suave, #f4f4f5);
   color: var(--wf-tenue, #71717a);
   font-size: 9px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+/* El relleno del cuerpo es el que usan los puntos de las salidas con nombre para llegar hasta el borde. */
+.wf-nodo-cuerpo {
+  padding: 8px 14px 10px;
 }
 
 .wf-nodo-nombre {
@@ -139,6 +148,10 @@
 /* El subflujo es el «proceso predefinido»: una tarjeta con una barra a cada costado. */
 .wf-nodo-subflujo {
   position: relative;
+}
+
+.wf-nodo-subflujo > .wf-nodo-cuerpo,
+.wf-nodo-subflujo > .wf-nodo-tipo {
   padding-inline: 22px;
 }
 
@@ -163,32 +176,49 @@
   right: -23px;
 }
 
-/* Inicio y fin son el óvalo de «terminador»: la misma tarjeta, con las puntas redondas. */
+/*
+ * Inicio y fin son el «terminador»: la misma tarjeta con la franja del tipo arriba y la parte de abajo bien redonda, para que se
+ * distingan de una función por la silueta.
+ */
 .wf-nodo-terminal {
-  padding-inline: 24px;
-  border-radius: 999px;
+  border-radius: 8px 8px 26px 26px;
+}
+
+.wf-nodo-terminal > .wf-nodo-cuerpo {
+  padding: 8px 22px 12px;
 }
 
 /*
- * La espera. La caja del nodo es invisible y abarca el círculo, el nombre y el renglón de los rótulos de las salidas. Lo que se ve
- * es el círculo de borde doble; el borde se dibuja con una sombra hacia adentro, así los puntos de conexión caen justo sobre el
- * contorno.
+ * La espera y la interrupción. La caja del nodo abarca el círculo, el nombre y las salidas, y es un rectángulo translúcido que
+ * desenfoca lo que tiene detrás: las flechas que pasan por atrás no tapan el texto. El borde del círculo se dibuja con una sombra
+ * hacia adentro, así los puntos de conexión caen justo sobre el contorno.
  */
 .wf-espera {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--wf-fondo, #f7f8fa) 55%, transparent);
+  backdrop-filter: blur(5px);
   color: var(--wf-texto, #27272a);
   font-size: 12px;
 }
 
+/* En vertical el nombre va al costado del círculo, a su altura. */
 .wf-espera.wf-nodo-vertical {
-  padding-bottom: 16px;
+  flex-direction: row-reverse;
+  gap: 10px;
 }
 
-.wf-espera.wf-nodo-horizontal {
-  flex-direction: column-reverse;
-  gap: 8px;
+.wf-espera-cuerpo {
+  display: flex;
+  align-items: center;
+}
+
+.wf-nodo-vertical > .wf-espera-cuerpo {
+  flex-direction: column;
 }
 
 .wf-espera-circulo {
@@ -216,24 +246,212 @@
   white-space: nowrap;
 }
 
-/* El rótulo de cada salida va al costado de su punto, para no tapar la flecha que sale. */
-.wf-espera-salida {
+.wf-nodo-vertical > .wf-espera-nombre {
+  line-height: 44px;
+}
+
+/*
+ * Las salidas con nombre: del círculo sale un tramo corto hasta una barra, y de la barra un tramo recto por cada salida, con su
+ * texto encima y el punto de conexión al final.
+ */
+.wf-espera-tramos {
+  position: relative;
+  margin-left: 10px;
+}
+
+.wf-espera-tramos::before,
+.wf-espera-tramos::after {
+  content: '';
   position: absolute;
+  background: var(--wf-linea, #a1a1aa);
+}
+
+/* El tramo corto que une el círculo con la barra. */
+.wf-espera-tramos::before {
+  top: calc(50% - 0.75px);
+  right: 100%;
+  width: 10px;
+  height: 1.5px;
+}
+
+/* La barra: va del primer tramo al último. */
+.wf-espera-tramos::after {
+  top: 11px;
+  bottom: 11px;
+  left: -0.75px;
+  width: 1.5px;
+}
+
+.wf-espera-tramos > .wf-peine-diente {
+  min-height: 22px;
+}
+
+.wf-nodo-vertical .wf-espera-tramos {
+  margin: 10px 0 0;
+}
+
+.wf-nodo-vertical .wf-espera-tramos::before {
+  top: auto;
+  right: auto;
+  bottom: 100%;
+  left: calc(50% - 0.75px);
+  width: 1.5px;
+  height: 10px;
+}
+
+.wf-nodo-vertical .wf-espera-tramos::after {
+  top: -0.75px;
+  right: 11px;
+  bottom: auto;
+  left: 11px;
+  width: auto;
+  height: 1.5px;
+}
+
+.wf-nodo-vertical .wf-espera-tramos > .wf-peine-diente {
+  min-width: 22px;
+  min-height: 18px;
+}
+
+/* Una interrupción que no desvía el flujo: borde punteado, como el evento «que no interrumpe» de BPMN. */
+.wf-espera-lateral {
+  box-sizing: border-box;
+  border: 1.5px dashed var(--wf-espera-trazo);
+  box-shadow:
+    inset 0 0 0 3px var(--wf-tarjeta, #ffffff),
+    inset 0 0 0 4.5px var(--wf-espera-trazo),
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 2px 6px rgb(0 0 0 / 8%);
+}
+
+/* Un rechazo: el mismo óvalo del fin, con el borde rojo. La acción no pasa. */
+.wf-nodo-rechazo {
+  border-color: #dc2626;
+}
+
+.wf-nodo-rechazo > .wf-nodo-tipo {
+  color: #dc2626;
+}
+
+/*
+ * La decisión como peine: el rombo y, de cada salida, un tramo recto con el texto a lo largo. El punto de conexión va al final
+ * del tramo, así la flecha recién se curva después del texto.
+ */
+.wf-peine {
+  display: flex;
+  flex-direction: column;
+  color: var(--wf-texto, #27272a);
+  font-size: 12px;
+}
+
+.wf-peine.wf-nodo-horizontal {
+  flex-direction: row;
+}
+
+.wf-peine-rombo {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.wf-dientes {
+  display: flex;
+}
+
+.wf-nodo-horizontal .wf-dientes {
+  flex-direction: column;
+}
+
+.wf-peine-diente {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 18px;
   color: var(--wf-tenue, #71717a);
   font-size: 10px;
   line-height: 12px;
+  /* El tramo recto: una línea por el medio del diente, de punta a punta. */
+  background: linear-gradient(var(--wf-linea, #a1a1aa), var(--wf-linea, #a1a1aa)) center / 1.5px 100% no-repeat;
+}
+
+.wf-peine-diente > b {
+  font-weight: 400;
   white-space: nowrap;
-  pointer-events: none;
+  writing-mode: vertical-rl;
+  padding: 4px 0 8px;
+  margin-left: calc(50% + 3px);
 }
 
-.wf-nodo-vertical .wf-espera-salida.wf-rotulo-antes {
-  transform: translate(calc(-100% - 8px), 2px);
+/* El tramo que falta entre el borde del rombo y el comienzo del diente. */
+.wf-peine-diente > i {
+  position: absolute;
+  bottom: 100%;
+  left: calc(50% - 0.75px);
+  width: 1.5px;
+  background: var(--wf-linea, #a1a1aa);
 }
 
-.wf-nodo-vertical .wf-espera-salida.wf-rotulo-despues {
-  transform: translate(8px, 2px);
+.wf-nodo-horizontal .wf-dientes > .wf-peine-diente {
+  align-items: flex-start;
+  min-width: 18px;
+  min-height: 0;
+  background-size: 100% 1.5px;
 }
 
-.wf-nodo-horizontal .wf-espera-salida {
-  transform: translate(8px, -50%);
+/* En horizontal el texto va derecho, apoyado sobre su tramo. */
+.wf-nodo-horizontal .wf-dientes > .wf-peine-diente > b {
+  writing-mode: horizontal-tb;
+  margin: -2px 0 0;
+  padding: 0 10px 0 4px;
+  line-height: 11px;
+}
+
+.wf-nodo-horizontal .wf-dientes > .wf-peine-diente > i {
+  top: calc(50% - 0.75px);
+  right: 100%;
+  bottom: auto;
+  left: auto;
+  width: auto;
+  height: 1.5px;
+}
+
+.wf-peine .react-flow__handle {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--wf-linea, #a1a1aa);
+  background: var(--wf-tarjeta, #ffffff);
+}
+
+/* La decisión como tarjeta: una fila por rama, con su punto a la derecha. */
+.wf-decision-tarjeta {
+  text-align: left;
+}
+
+.wf-decision-filas {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+  color: var(--wf-tenue, #71717a);
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.wf-decision-filas > span {
+  position: relative;
+  padding-top: 3px;
+  border-top: 1px solid var(--wf-borde, #e4e4e7);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.wf-decision-filas > span > .react-flow__handle {
+  right: -15px;
+}
+
+/* En una espera horizontal, cada tramo conserva su alto: la barra que los une se mide con él. */
+.wf-espera.wf-nodo-horizontal .wf-espera-tramos > .wf-peine-diente {
+  min-height: 22px;
 }

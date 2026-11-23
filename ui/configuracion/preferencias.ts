@@ -8,9 +8,11 @@ export interface Preferencias {
   orientacion: 'vertical' | 'horizontal'
   /** Si el borrador se guarda solo mientras se edita o solo con el botón «Guardar». */
   guardado: 'automatico' | 'manual'
+  /** Cómo se dibuja una decisión. */
+  decision: 'peine' | 'tarjeta' | 'rombo'
 }
 
-export const PREFERENCIAS_DE_FABRICA: Preferencias = { inspector: 'barra', orientacion: 'vertical', guardado: 'automatico' }
+export const PREFERENCIAS_DE_FABRICA: Preferencias = { inspector: 'barra', orientacion: 'vertical', guardado: 'automatico', decision: 'peine' }
 
 /**
  * Los ajustes que muestra la configuración. Sumar uno es agregar una entrada acá y su campo en `Preferencias`: la pantalla se arma
@@ -31,6 +33,15 @@ export const AJUSTES: readonly { clave: keyof Preferencias; titulo: string; opci
     opciones: [
       { valor: 'vertical', nombre: 'Vertical', detalle: 'El flujo corre de arriba hacia abajo.' },
       { valor: 'horizontal', nombre: 'Horizontal', detalle: 'El flujo corre de izquierda a derecha.' },
+    ],
+  },
+  {
+    clave: 'decision',
+    titulo: 'Cómo se dibujan las decisiones',
+    opciones: [
+      { valor: 'peine', nombre: 'Peine', detalle: 'El rombo, y de cada salida un tramo recto con su texto a lo largo. Crece con las ramas.' },
+      { valor: 'tarjeta', nombre: 'Tarjeta', detalle: 'La pregunta y una fila por rama, como una tabla. La más compacta con muchas ramas.' },
+      { valor: 'rombo', nombre: 'Rombo fijo', detalle: 'El rombo de tamaño fijo, con los textos al costado. Alcanza para dos o tres ramas.' },
     ],
   },
   {

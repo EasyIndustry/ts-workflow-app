@@ -49,7 +49,12 @@
 .wf-flujos-nuevo {
   display: flex;
   gap: 8px;
-  width: min(420px, 100%);
+  width: min(560px, 100%);
+}
+
+.wf-flujos-nuevo > select {
+  flex: none;
+  width: 130px;
 }
 
 .wf-flujos-nombre {
@@ -183,4 +188,21 @@
 .wf-salir-texto {
   margin: 0;
   font-size: 14px;
+}
+
+/* El sistema no dejó publicar: el motivo, arriba de todo y bien a la vista. */
+.wf-publicar-rechazo {
+  padding: 10px 12px;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  background: color-mix(in srgb, #dc2626 8%, transparent);
+}
+
+.wf-publicar-rechazo > p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.wf-publicar-rechazo > ul {
+  margin-bottom: 0;
 }

@@ -10,6 +10,8 @@ export interface BarraDeFlujoProps {
   version?: number
   estado: EstadoDeGuardado
   onVolver: () => void
+  /** A dónde vuelve el botón. Por defecto, a la lista de flujos. */
+  volverA?: string
   /** Guarda el borrador ahora. No publica. */
   onGuardar: () => void
   /** Si en el lienzo hay algo distinto de lo guardado. */
@@ -30,11 +32,11 @@ function texto(estado: EstadoDeGuardado, version?: number): string {
  * La barra de arriba del editor: volver a la lista, el nombre del flujo, cómo está el guardado, guardar y publicar. Guardar deja un
  * borrador y no cambia nada de lo que está en uso; publicar sí, y solo se puede con el borrador ya guardado.
  */
-export function BarraDeFlujo({ nombre, version, estado, onVolver, onGuardar, hayCambiosSinGuardar, onPublicar }: BarraDeFlujoProps) {
+export function BarraDeFlujo({ nombre, version, estado, onVolver, volverA = 'Flujos', onGuardar, hayCambiosSinGuardar, onPublicar }: BarraDeFlujoProps) {
   return (
     <header className="wf-barra-flujo">
       <button type="button" className="wf-boton" onClick={onVolver}>
-        ← Flujos
+        ← {volverA}
       </button>
       <strong>{nombre}</strong>
       <span className={estado === 'error' ? 'wf-barra-flujo-estado wf-barra-flujo-error' : 'wf-barra-flujo-estado'} role="status">

@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react'
-import { Inspector, tipoDeNodo, type Capacidad } from './Inspector'
+import { Inspector, tipoDeNodo } from './Inspector'
 import { useNodoSeleccionado } from './seleccion'
 
 /**
  * El inspector como tarjeta flotante sobre el lienzo: aparece cuando hay un solo nodo seleccionado y se mueve arrastrándola del
  * título. Recuerda dónde quedó entre una selección y otra. Va adentro del lienzo.
  */
-export function TarjetaFlotante({ capacidades }: { capacidades: readonly Capacidad[] }) {
-  const { nodo, cambiar } = useNodoSeleccionado()
-  const [lugar, setLugar] = useState({ x: 16, y: 16 })
+export function TarjetaFlotante() {
+  const { nodo, cambiar, eliminar } = useNodoSeleccionado()
+  const [lugar, setLugar] = useState({ x: 140, y: 16 })
   const agarre = useRef<{ dx: number; dy: number } | null>(null)
   if (!nodo) return null
   return (
@@ -29,7 +29,10 @@ export function TarjetaFlotante({ capacidades }: { capacidades: readonly Capacid
       >
         {tipoDeNodo(nodo)}
       </h2>
-      <Inspector key={nodo.id} nodo={nodo} capacidades={capacidades} onCambio={cambiar} />
+      {/* El contenido se desplaza adentro de la tarjeta: con muchas ramas no entra en la pantalla. */}
+      <div className="wf-tarjeta-flotante-cuerpo">
+        <Inspector key={nodo.id} nodo={nodo} onCambio={cambiar} onEliminar={eliminar} />
+      </div>
     </section>
   )
 }

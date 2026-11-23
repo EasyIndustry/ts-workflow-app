@@ -148,3 +148,18 @@ textarea.wf-prueba-json:focus-visible {
 .react-flow__node.wf-prueba-error {
   filter: drop-shadow(0 0 1px #dc2626) drop-shadow(0 0 6px #dc2626);
 }
+
+.wf-prueba-eleccion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--wf-acento);
+  border-radius: 8px;
+}
+
+.wf-prueba-eleccion > strong {
+  width: 100%;
+  font-weight: 600;
+}
