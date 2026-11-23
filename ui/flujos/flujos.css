@@ -125,3 +125,73 @@
 .wf-barra-flujo-error {
   color: #b91c1c;
 }
+
+/* La ventana de publicar: la verificación y los cambios. */
+.wf-publicar {
+  display: grid;
+  gap: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.wf-publicar p {
+  margin: 0;
+}
+
+.wf-publicar-resumen,
+.wf-publicar-nada {
+  color: var(--wf-tenue);
+}
+
+.wf-publicar section {
+  display: grid;
+  gap: 8px;
+}
+
+.wf-publicar h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.wf-publicar h4 {
+  margin: 4px 0 0;
+  color: var(--wf-tenue);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wf-publicar ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.wf-publicar-bien,
+.wf-publicar-mas {
+  color: #15803d;
+}
+
+.wf-publicar-mal,
+.wf-publicar-errores,
+.wf-publicar-menos {
+  color: #b91c1c;
+}
+
+.wf-publicar-avisos {
+  color: #92400e;
+}
+
+.wf-publicar-cambios ul {
+  margin-top: 4px;
+  color: var(--wf-tenue);
+}
+
+.wf-salir-texto {
+  margin: 0;
+  font-size: 14px;
+}

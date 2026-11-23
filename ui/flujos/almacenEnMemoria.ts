@@ -43,7 +43,7 @@ export function crearAlmacenEnMemoria(iniciales: readonly FlujoInicial[] = []): 
     },
     abrir: async (id) => {
       const f = buscar(id)
-      return { ...resumen(f), contenido: f.borrador ?? f.publicado ?? { nodos: [], flechas: [] } }
+      return { ...resumen(f), contenido: f.borrador ?? f.publicado ?? { nodos: [], flechas: [] }, publicado: f.publicado }
     },
     guardarBorrador: async (id, contenido) => {
       buscar(id).borrador = contenido

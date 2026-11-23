@@ -20,6 +20,8 @@ export interface ResumenDeFlujo {
 export interface FlujoAbierto extends ResumenDeFlujo {
   /** El borrador si lo hay; si no, la versión vigente. */
   contenido: ContenidoDeFlujo
+  /** La versión vigente, para comparar contra ella. Falta si nunca se publicó. */
+  publicado?: ContenidoDeFlujo
 }
 
 /**
