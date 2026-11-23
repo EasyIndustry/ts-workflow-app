@@ -140,6 +140,20 @@ export function Inspector({ nodo, onCambio, onEliminar }: InspectorProps) {
         />
       )}
 
+      {nodo.type === 'evento' && nodo.data.variante === 'interrupcion' && (
+        <Campo
+          etiqueta="Qué pasa con el flujo"
+          ayuda={nodo.data.lateral ? 'Hace lo que tiene en su camino y el flujo sigue parado donde estaba.' : 'El flujo deja la espera donde estaba y sigue por este camino.'}
+        >
+          {(id) => (
+            <Lista id={id} value={nodo.data.lateral ? 'lateral' : 'desvia'} onChange={(e) => onCambio({ lateral: e.target.value === 'lateral' || undefined })}>
+              <option value="desvia">Lo desvía</option>
+              <option value="lateral">No lo desvía</option>
+            </Lista>
+          )}
+        </Campo>
+      )}
+
       {nodo.type === 'subflujo' && <Subflujo nodo={nodo} onCambio={onCambio} />}
 
       {onEliminar && (

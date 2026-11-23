@@ -84,6 +84,17 @@ export function verificarFlujo(contenido, capacidades, opciones = {}) {
         if (sueltas.length === 0)
             completos.add(n.id);
     }
+    // De una espera también se sale por cualquier interrupción que aplique en ella: cuenta para saber si se llega a un fin.
+    const interrupciones = nodos.filter((n) => n.type === 'evento' && n.data.variante === 'interrupcion');
+    for (const n of nodos) {
+        if (n.type !== 'evento' || n.data.variante !== 'espera')
+            continue;
+        for (const i of interrupciones) {
+            if (i.type !== 'evento' || i.data.lateral || i.data.excepto?.includes(n.id))
+                continue;
+            viene.set(i.id, [...(viene.get(i.id) ?? []), n.id]);
+        }
+    }
     const desdeLasEntradas = alcanzables(nodos.filter(esEntrada).map((n) => n.id), sigue);
     const hastaUnFin = alcanzables(nodos.filter(esFin).map((n) => n.id), viene);
     for (const n of nodos) {

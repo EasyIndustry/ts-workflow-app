@@ -11,13 +11,21 @@ type Nombrado = {
  * - `inicio`: lo que arranca el flujo.
  * - `fin`: donde termina. En un subflujo, su nombre es el resultado con el que sale.
  * - `espera`: el flujo se detiene hasta que pase uno de los `eventos` que escucha, y sale por el primero que ocurra.
- * - `interrupcion`: un evento que puede llegar en cualquier momento y desvía el flujo en curso, salvo en las esperas de `excepto`.
+ * - `interrupcion`: un evento que puede llegar en cualquier momento, salvo en las esperas de `excepto`. Desvía el flujo en curso
+ *   o, si es `lateral`, hace lo suyo sin moverlo de donde estaba.
  */
 export type DatosEvento = {
     variante: 'inicio' | 'espera' | 'fin' | 'interrupcion';
     nombre: string;
+    /** En una espera: los eventos que escucha, con una salida cada uno. Vacía, la espera solo se deja por una interrupción. */
     eventos?: readonly Nombrado[];
+    /** En una interrupción: los ids de las esperas donde no aplica. */
     excepto?: readonly string[];
+    /**
+     * En una interrupción: no desvía el flujo. Hace lo que tiene en su camino y el flujo sigue parado donde estaba; el fin de ese
+     * camino solo termina el camino. Es el evento «que no interrumpe» de BPMN, de borde punteado.
+     */
+    lateral?: boolean;
 };
 /** Una función del registro: `capacidad` es su id y `params`, los datos con los que la llama. */
 export type DatosFuncion = {

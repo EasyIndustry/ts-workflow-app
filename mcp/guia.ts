@@ -27,14 +27,16 @@ La posición (\`position: { x, y }\`) es opcional: sin ella, los nodos se acomod
 | \`evento\`, variante \`inicio\` | \`{ variante: "inicio", nombre }\` | \`salida\` |
 | \`evento\`, variante \`fin\` | \`{ variante: "fin", nombre }\` | ninguna |
 | \`evento\`, variante \`espera\` | \`{ variante: "espera", nombre, eventos: [{ id, nombre }] }\` | una por evento: su \`id\` |
-| \`evento\`, variante \`interrupcion\` | \`{ variante: "interrupcion", nombre }\` | \`salida\` |
+| \`evento\`, variante \`interrupcion\` | \`{ variante: "interrupcion", nombre, excepto?, lateral? }\` | \`salida\` |
 | \`funcion\` | \`{ nombre, capacidad, params }\` | \`salida\` |
 | \`decision\` | \`{ nombre, ramas: [{ id, nombre }] }\` | una por rama: su \`id\`, más \`sino\` |
 | \`subflujo\` | \`{ nombre, flujo, version, salidas: [{ id, nombre }] }\` | una por salida: su \`id\` |
 
 - **inicio**: lo que arranca el flujo. No recibe flechas.
 - **espera**: el flujo queda parado hasta que pase uno de sus eventos, y sigue por el primero. Solo en un maestro.
-- **interrupcion**: un evento que puede llegar en cualquier momento y desvía el flujo. No recibe flechas. Solo en un maestro.
+- **interrupcion**: un evento que puede llegar en cualquier momento (salvo en las esperas de \`excepto\`) y desvía el flujo. Con
+  \`lateral: true\` no lo desvía: hace lo de su camino y el flujo sigue donde estaba. No recibe flechas. Solo en un maestro.
+- Una **espera** con \`eventos: []\` no tiene salidas: se deja solo por una interrupción.
 - **funcion**: hace algo. \`capacidad\` es un id de \`capacidades_listar\` y \`params\` cumple su schema.
 - **decision**: solo lee. Las ramas se evalúan en orden; si ninguna se cumple, sale por \`sino\`. El nombre es la pregunta.
 - **subflujo**: usa otro flujo en una versión fija. \`flujo\`, \`version\` y \`salidas\` salen de \`subflujos_listar\`, tal cual.

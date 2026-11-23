@@ -1,6 +1,6 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
 import { Fragment } from 'react'
-import type { DatosEvento } from '../../modelo/nodos.js'
+import { salidasDe, type DatosEvento } from '../../modelo/nodos.js'
 import { useOrientacion } from '../canvas/orientacion'
 import { puntoEnCirculo } from './geometria'
 import { NodoBase, PuntoDeSalida, useRemedirPuntos } from './NodoBase'
@@ -13,7 +13,7 @@ import { NodoBase, PuntoDeSalida, useRemedirPuntos } from './NodoBase'
  *   único nodo donde el flujo queda parado. Es un círculo de borde doble, como el evento intermedio de BPMN.
  * - `interrupcion`: un evento que puede llegar en cualquier momento, esté donde esté el flujo, y lo desvía. No crea una instancia
  *   nueva: actúa sobre la que está corriendo. Equivale a sumarle esa salida a todas las esperas, menos las de `excepto`. Es el
- *   mismo círculo de borde doble, sin entrada.
+ *   mismo círculo de borde doble, sin entrada. Si es `lateral` (no desvía el flujo), el borde es punteado.
  */
 export type NodoEvento = Node<DatosEvento, 'evento'>
 
@@ -24,12 +24,12 @@ const SIN_SALIDAS: readonly { id: string; nombre?: string }[] = []
  * El círculo de la espera y de la interrupción. La caja del nodo es invisible y abarca el círculo y el nombre, así ocupa su lugar real cuando se acomoda el lienzo.
  * Lo que se ve es el círculo, y ahí van los puntos de conexión.
  */
-function Circulo({ nombre, eventos, entrada }: { nombre: string; eventos: readonly { id: string; nombre?: string }[]; entrada: boolean }) {
+function Circulo({ nombre, eventos, entrada, lateral = false }: { nombre: string; eventos: readonly { id: string; nombre?: string }[]; entrada: boolean; lateral?: boolean }) {
   const horizontal = useOrientacion() === 'horizontal'
   useRemedirPuntos(`${horizontal}-${entrada}-${eventos.length}`)
   return (
     <div className={`wf-espera ${horizontal ? 'wf-nodo-horizontal' : 'wf-nodo-vertical'}`}>
-      <div className="wf-espera-circulo">
+      <div className={lateral ? 'wf-espera-circulo wf-espera-lateral' : 'wf-espera-circulo'}>
         {entrada && <Handle type="target" position={horizontal ? Position.Left : Position.Top} />}
         {eventos.map((s, i) => {
           const { x, y, antes } = puntoEnCirculo(i, eventos.length, horizontal)
@@ -55,9 +55,10 @@ function Circulo({ nombre, eventos, entrada }: { nombre: string; eventos: readon
   )
 }
 
-export function Evento({ data }: NodeProps<NodoEvento>) {
-  if (data.variante === 'espera') return <Circulo entrada nombre={data.nombre} eventos={data.eventos?.length ? data.eventos : UNA_SALIDA} />
-  if (data.variante === 'interrupcion') return <Circulo entrada={false} nombre={data.nombre} eventos={UNA_SALIDA} />
+export function Evento(props: NodeProps<NodoEvento>) {
+  const { data } = props
+  if (data.variante === 'espera') return <Circulo entrada nombre={data.nombre} eventos={salidasDe({ id: props.id, type: 'evento', position: { x: 0, y: 0 }, data })} />
+  if (data.variante === 'interrupcion') return <Circulo entrada={false} lateral={data.lateral} nombre={data.nombre} eventos={UNA_SALIDA} />
   const inicio = data.variante === 'inicio'
   return <NodoBase clase="wf-nodo-terminal" tipo={inicio ? 'Inicio' : 'Fin'} nombre={data.nombre} entrada={!inicio} salidas={inicio ? UNA_SALIDA : SIN_SALIDAS} />
 }

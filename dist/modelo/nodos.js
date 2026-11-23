@@ -20,7 +20,8 @@ export function salidasDe(nodo) {
         case 'evento':
             if (nodo.data.variante === 'fin')
                 return [];
-            return nodo.data.variante === 'espera' && nodo.data.eventos?.length ? nodo.data.eventos : [{ id: SALIDA_UNICA }];
+            // Una espera sale por sus eventos. Si no declara ninguno (lista vacía), no tiene salidas: se deja por una interrupción.
+            return nodo.data.variante === 'espera' && nodo.data.eventos ? nodo.data.eventos : [{ id: SALIDA_UNICA }];
         case 'decision':
             return [...nodo.data.ramas, { id: SALIDA_SI_NO, nombre: 'si no' }];
         case 'subflujo':
