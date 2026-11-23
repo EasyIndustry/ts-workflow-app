@@ -1,0 +1,28 @@
+{
+  "name": "ts-workflow-app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "App genérica de flujos sobre ts-workflow-core y ts-workflow-plugins: la interfaz para que una persona vea, controle y publique flujos. No lleva lógica de negocio de nadie.",
+  "type": "module",
+  "scripts": {
+    "storybook": "storybook dev -p 6610 --host 127.0.0.1 --ci --exact-port",
+    "build-storybook": "storybook build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "@xyflow/react": "12.12.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@storybook/react-vite": "10.6.6",
+    "@types/node": "^22.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "storybook": "10.6.6",
+    "typescript": "5.9.3",
+    "vite": "8.3.6"
+  }
+}
