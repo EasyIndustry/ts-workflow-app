@@ -4,9 +4,11 @@ import { useState } from 'react'
 export interface Preferencias {
   /** Dónde aparece el inspector al seleccionar un nodo. */
   inspector: 'barra' | 'tarjeta'
+  /** Hacia dónde corre el flujo en el lienzo. */
+  orientacion: 'vertical' | 'horizontal'
 }
 
-export const PREFERENCIAS_DE_FABRICA: Preferencias = { inspector: 'barra' }
+export const PREFERENCIAS_DE_FABRICA: Preferencias = { inspector: 'barra', orientacion: 'vertical' }
 
 /**
  * Los ajustes que muestra la configuración. Sumar uno es agregar una entrada acá y su campo en `Preferencias`: la pantalla se arma
@@ -19,6 +21,14 @@ export const AJUSTES: readonly { clave: keyof Preferencias; titulo: string; opci
     opciones: [
       { valor: 'barra', nombre: 'Barra lateral', detalle: 'Aparece al costado y el lienzo le hace lugar.' },
       { valor: 'tarjeta', nombre: 'Tarjeta flotante', detalle: 'Aparece sobre el lienzo y se puede mover.' },
+    ],
+  },
+  {
+    clave: 'orientacion',
+    titulo: 'Orientación del flujo',
+    opciones: [
+      { valor: 'vertical', nombre: 'Vertical', detalle: 'El flujo corre de arriba hacia abajo.' },
+      { valor: 'horizontal', nombre: 'Horizontal', detalle: 'El flujo corre de izquierda a derecha.' },
     ],
   },
 ]

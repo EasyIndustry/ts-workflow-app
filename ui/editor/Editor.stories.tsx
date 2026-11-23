@@ -3,8 +3,8 @@ import { CAPACIDADES_DE_EJEMPLO, FLECHAS_DE_EJEMPLO, NODOS_DE_EJEMPLO } from '..
 import { Editor } from './Editor'
 
 /**
- * La app armada. El botón «Configuración» abre la ventana de ajustes; el primero elige si el inspector aparece como barra lateral
- * o como tarjeta flotante. Lo elegido queda guardado en el navegador.
+ * La app armada. El botón «Configuración» abre la ventana de ajustes; ahí se elige si el inspector aparece como barra lateral
+ * o como tarjeta flotante, y la orientación del flujo. Lo elegido queda guardado en el navegador.
  */
 const meta = {
   title: 'Editor',

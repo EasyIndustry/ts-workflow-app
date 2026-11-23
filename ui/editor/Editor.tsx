@@ -9,7 +9,7 @@ import { TarjetaFlotante } from '../inspector/TarjetaFlotante'
 import { TIPOS_DE_NODO, type NodoDeFlujo } from '../nodos'
 import './editor.css'
 
-export type EditorProps = Omit<LienzoProps<NodoDeFlujo>, 'nodeTypes' | 'botones'> & {
+export type EditorProps = Omit<LienzoProps<NodoDeFlujo>, 'nodeTypes' | 'botones' | 'orientacion'> & {
   /** Las capacidades del registro, para elegir qué hace cada función. */
   capacidades: readonly Capacidad[]
 }
@@ -28,6 +28,7 @@ export function Editor({ capacidades, children, ...lienzo }: EditorProps) {
           <Lienzo<NodoDeFlujo>
             {...lienzo}
             nodeTypes={TIPOS_DE_NODO}
+            orientacion={preferencias.orientacion}
             botones={
               <button type="button" onClick={() => setConfigurando(true)}>
                 Configuración
