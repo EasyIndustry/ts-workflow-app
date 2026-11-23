@@ -1,5 +1,6 @@
 import { Background, Panel, ReactFlow, type Edge, type Node, type ReactFlowProps } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import '../tema.css'
 import './lienzo.css'
 import { useState } from 'react'
 import { BotonAcomodar } from './BotonAcomodar'
