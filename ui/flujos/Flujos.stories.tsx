@@ -20,7 +20,7 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-function Demo({ puedePublicar }: { puedePublicar: boolean }) {
+function Demo({ puedePublicar, tema }: { puedePublicar: boolean; tema?: 'oscuro' }) {
   const almacen = useMemo(
     () =>
       crearAlmacenEnMemoria([
@@ -32,7 +32,7 @@ function Demo({ puedePublicar }: { puedePublicar: boolean }) {
   )
   return (
     <div style={{ height: '100vh' }}>
-      <AppDeFlujos almacen={almacen} capacidades={CAPACIDADES_DE_EJEMPLO} puedePublicar={puedePublicar} prueba={{ ejecutor: EJECUTOR_DE_EJEMPLO, registros: REGISTROS_DE_EJEMPLO }} />
+      <AppDeFlujos almacen={almacen} capacidades={CAPACIDADES_DE_EJEMPLO} puedePublicar={puedePublicar} prueba={{ ejecutor: EJECUTOR_DE_EJEMPLO, registros: REGISTROS_DE_EJEMPLO }} tema={tema} />
     </div>
   )
 }
@@ -42,6 +42,9 @@ function Demo({ puedePublicar }: { puedePublicar: boolean }) {
  * subflujo publicado, «Revisar un pedido»: agregá un nodo Subflujo en «Pedidos», elegilo en el inspector y abrilo desde ahí.
  */
 export const AppCompleta: Story = { name: 'App completa', render: () => <Demo puedePublicar /> }
+
+/** La misma app con el tema oscuro, para un sistema que lo usa. */
+export const AppOscura: Story = { name: 'App completa, oscura', render: () => <Demo puedePublicar tema="oscuro" /> }
 
 /** Lo mismo para una persona que no puede publicar: el botón no aparece. */
 export const SinPermisoDePublicar: Story = { name: 'Sin permiso de publicar', render: () => <Demo puedePublicar={false} /> }

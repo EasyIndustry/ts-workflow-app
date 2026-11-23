@@ -21,6 +21,8 @@ export interface AppDeFlujosProps {
   puedePublicar?: boolean
   /** Con esto aparece «Probar» en el editor. */
   prueba?: EditorProps['prueba']
+  /** Para que combine con la pantalla donde está montada. Por defecto, claro. */
+  tema?: 'claro' | 'oscuro'
 }
 
 const VACIO: ContenidoDeFlujo = { nodos: [], flechas: [] }
@@ -33,12 +35,14 @@ const VACIO: ContenidoDeFlujo = { nodos: [], flechas: [] }
 export function AppDeFlujos(props: AppDeFlujosProps) {
   return (
     <ProveedorDePreferencias>
-      <App {...props} />
+      <div className={props.tema === 'oscuro' ? 'wf-raiz wf-tema-oscuro' : 'wf-raiz'}>
+        <App {...props} />
+      </div>
     </ProveedorDePreferencias>
   )
 }
 
-function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujosProps) {
+function App({ almacen, capacidades, puedePublicar = true, prueba, tema }: AppDeFlujosProps) {
   const [preferencias] = usePreferencias()
   const [flujos, setFlujos] = useState<readonly ResumenDeFlujo[] | null>(null)
   const [abierto, setAbierto] = useState<FlujoAbierto | null>(null)
@@ -140,7 +144,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
         onPublicar={puedePublicar ? () => setPublicando(true) : undefined}
       />
       <div className="wf-app-editor">
-        <Editor key={abierto.id} capacidades={capacidades} subflujos={subflujos} tipo={abierto.tipo} onAbrirFlujo={(id) => void irA(id)} prueba={prueba} defaultNodes={abierto.contenido.nodos} defaultEdges={abierto.contenido.flechas} fitView fitViewOptions={{ maxZoom: 1.2 }}>
+        <Editor key={abierto.id} capacidades={capacidades} subflujos={subflujos} tipo={abierto.tipo} onAbrirFlujo={(id) => void irA(id)} prueba={prueba} tema={tema} defaultNodes={abierto.contenido.nodos} defaultEdges={abierto.contenido.flechas} fitView fitViewOptions={{ maxZoom: 1.2 }}>
           <Autoguardado guardado={guardado} onCambio={setSinGuardar} onGuardar={automatico ? (c) => void guardar(c) : undefined} />
         </Editor>
       </div>

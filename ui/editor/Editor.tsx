@@ -27,6 +27,8 @@ export type EditorProps = Omit<LienzoProps<NodoDeFlujo>, 'nodeTypes' | 'botones'
    * no ejecuta nada y la persona elige por dónde sigue en cada decisión.
    */
   prueba?: { ejecutor?: Ejecutor; registros?: readonly RegistroDePrueba[] }
+  /** Por defecto, claro. */
+  tema?: 'claro' | 'oscuro'
 }
 
 const SIN_SUBFLUJOS: readonly ContratoDeSubflujo[] = []
@@ -35,7 +37,7 @@ const SIN_SUBFLUJOS: readonly ContratoDeSubflujo[] = []
  * La app armada: el lienzo con los nodos y la paleta para agregarlos, el inspector donde la persona lo prefiera, el panel de prueba
  * y la configuración. Ocupa el alto y el ancho de su contenedor, que tiene que tener tamaño.
  */
-export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro', onAbrirFlujo, prueba, children, ...lienzo }: EditorProps) {
+export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro', onAbrirFlujo, prueba, tema = 'claro', children, ...lienzo }: EditorProps) {
   const [preferencias, cambiarPreferencias] = usePreferencias()
   const [configurando, setConfigurando] = useState(false)
   const [probando, setProbando] = useState(false)
@@ -50,6 +52,7 @@ export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro
               {...lienzo}
               nodeTypes={TIPOS_DE_NODO}
               orientacion={preferencias.orientacion}
+              colorMode={tema === 'oscuro' ? 'dark' : 'light'}
               botones={
                 <>
                   <button type="button" onClick={() => setProbando(!probando)} aria-pressed={probando}>
