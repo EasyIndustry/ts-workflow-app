@@ -45,7 +45,7 @@ const subflujo: NodoDeFlujo = {
   data: { nombre: 'Revisar el pedido', flujo: 'revision', version: 3, salidas: [{ id: 'aprobado', nombre: 'aprobado' }, { id: 'rechazado', nombre: 'rechazado' }] },
 }
 
-/** Las tres variantes del evento: inicio (borde fino), espera (borde doble) y fin (borde grueso). */
+/** Las tres variantes del evento: inicio y fin (óvalo) y espera (círculo de borde doble). */
 export const Evento: Story = { args: { nodos: [inicio, { ...espera, ...en(260, 0) }, { ...fin, ...en(560, 0) }] } }
 export const Funcion: Story = { args: { nodos: [funcion] } }
 export const Decision: Story = { args: { nodos: [decision] } }
