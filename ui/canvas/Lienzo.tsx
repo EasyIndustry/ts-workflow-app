@@ -1,18 +1,23 @@
-import { Background, ReactFlow } from '@xyflow/react'
+import { Background, ReactFlow, type Edge, type Node, type ReactFlowProps } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
-export interface LienzoProps {
-  className?: string
-}
+export type LienzoProps<N extends Node = Node, E extends Edge = Edge> = ReactFlowProps<N, E>
 
 /**
- * El lienzo: React Flow con su comportamiento de fábrica. Lo único propio es cancelar el menú del click derecho.
+ * El lienzo: React Flow con su comportamiento de fábrica y todas sus props. Lo único propio es cancelar el menú del click derecho.
  * Ocupa el alto y el ancho de su contenedor, que tiene que tener tamaño.
  */
-export function Lienzo({ className }: LienzoProps) {
+export function Lienzo<N extends Node = Node, E extends Edge = Edge>({ children, onContextMenu, ...resto }: LienzoProps<N, E>) {
   return (
-    <ReactFlow className={className} onContextMenu={(e) => e.preventDefault()}>
+    <ReactFlow<N, E>
+      {...resto}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        onContextMenu?.(e)
+      }}
+    >
       <Background />
+      {children}
     </ReactFlow>
   )
 }

@@ -1,0 +1,46 @@
+/*
+ * Los nodos usan las variables de React Flow (--xy-*), así se ven como sus nodos de fábrica y siguen su tema claro u oscuro.
+ */
+.wf-nodo {
+  min-width: 150px;
+  padding: 8px 12px;
+  border: var(--xy-node-border, var(--xy-node-border-default));
+  border-radius: var(--xy-node-border-radius, var(--xy-node-border-radius-default));
+  background: var(--xy-node-background-color, var(--xy-node-background-color-default));
+  color: var(--xy-node-color, var(--xy-node-color-default));
+  font-size: 12px;
+  text-align: center;
+}
+
+.react-flow__node.selected > .wf-nodo {
+  box-shadow: var(--xy-node-boxshadow-selected, var(--xy-node-boxshadow-selected-default));
+}
+
+.wf-nodo-tipo {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.wf-nodo-nombre {
+  font-weight: 600;
+}
+
+.wf-nodo-detalle {
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.wf-nodo-salidas {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.wf-nodo-salidas > span {
+  flex: 1;
+}
