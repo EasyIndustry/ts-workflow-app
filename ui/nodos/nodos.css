@@ -170,25 +170,36 @@
 }
 
 /*
- * La espera. La caja del nodo es invisible y abarca el círculo, el nombre y el renglón de los rótulos de las salidas. Lo que se ve
- * es el círculo de borde doble; el borde se dibuja con una sombra hacia adentro, así los puntos de conexión caen justo sobre el
- * contorno.
+ * La espera y la interrupción. La caja del nodo abarca el círculo, el nombre y las salidas, y es un rectángulo translúcido que
+ * desenfoca lo que tiene detrás: las flechas que pasan por atrás no tapan el texto. El borde del círculo se dibuja con una sombra
+ * hacia adentro, así los puntos de conexión caen justo sobre el contorno.
  */
 .wf-espera {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--wf-fondo, #f7f8fa) 55%, transparent);
+  backdrop-filter: blur(5px);
   color: var(--wf-texto, #27272a);
   font-size: 12px;
 }
 
+/* En vertical el nombre va al costado del círculo, a su altura. */
 .wf-espera.wf-nodo-vertical {
-  padding-bottom: 16px;
+  flex-direction: row-reverse;
+  gap: 10px;
 }
 
-.wf-espera.wf-nodo-horizontal {
-  flex-direction: column-reverse;
-  gap: 8px;
+.wf-espera-cuerpo {
+  display: flex;
+  align-items: center;
+}
+
+.wf-nodo-vertical > .wf-espera-cuerpo {
+  flex-direction: column;
 }
 
 .wf-espera-circulo {
@@ -216,26 +227,71 @@
   white-space: nowrap;
 }
 
-/* El rótulo de cada salida va al costado de su punto, para no tapar la flecha que sale. */
-.wf-espera-salida {
+.wf-nodo-vertical > .wf-espera-nombre {
+  line-height: 44px;
+}
+
+/*
+ * Las salidas con nombre: del círculo sale un tramo corto hasta una barra, y de la barra un tramo recto por cada salida, con su
+ * texto encima y el punto de conexión al final.
+ */
+.wf-espera-tramos {
+  position: relative;
+  margin-left: 10px;
+}
+
+.wf-espera-tramos::before,
+.wf-espera-tramos::after {
+  content: '';
   position: absolute;
-  color: var(--wf-tenue, #71717a);
-  font-size: 10px;
-  line-height: 12px;
-  white-space: nowrap;
-  pointer-events: none;
+  background: var(--wf-linea, #a1a1aa);
 }
 
-.wf-nodo-vertical .wf-espera-salida.wf-rotulo-antes {
-  transform: translate(calc(-100% - 8px), 2px);
+/* El tramo corto que une el círculo con la barra. */
+.wf-espera-tramos::before {
+  top: calc(50% - 0.75px);
+  right: 100%;
+  width: 10px;
+  height: 1.5px;
 }
 
-.wf-nodo-vertical .wf-espera-salida.wf-rotulo-despues {
-  transform: translate(8px, 2px);
+/* La barra: va del primer tramo al último. */
+.wf-espera-tramos::after {
+  top: 11px;
+  bottom: 11px;
+  left: -0.75px;
+  width: 1.5px;
 }
 
-.wf-nodo-horizontal .wf-espera-salida {
-  transform: translate(8px, -50%);
+.wf-espera-tramos > .wf-peine-diente {
+  min-height: 22px;
+}
+
+.wf-nodo-vertical .wf-espera-tramos {
+  margin: 10px 0 0;
+}
+
+.wf-nodo-vertical .wf-espera-tramos::before {
+  top: auto;
+  right: auto;
+  bottom: 100%;
+  left: calc(50% - 0.75px);
+  width: 1.5px;
+  height: 10px;
+}
+
+.wf-nodo-vertical .wf-espera-tramos::after {
+  top: -0.75px;
+  right: 11px;
+  bottom: auto;
+  left: 11px;
+  width: auto;
+  height: 1.5px;
+}
+
+.wf-nodo-vertical .wf-espera-tramos > .wf-peine-diente {
+  min-width: 22px;
+  min-height: 18px;
 }
 
 /* Una interrupción que no desvía el flujo: borde punteado, como el evento «que no interrumpe» de BPMN. */
@@ -282,11 +338,11 @@
   text-align: center;
 }
 
-.wf-peine-dientes {
+.wf-dientes {
   display: flex;
 }
 
-.wf-nodo-horizontal > .wf-peine-dientes {
+.wf-nodo-horizontal .wf-dientes {
   flex-direction: column;
 }
 
@@ -319,7 +375,7 @@
   background: var(--wf-linea, #a1a1aa);
 }
 
-.wf-nodo-horizontal > .wf-peine-dientes > .wf-peine-diente {
+.wf-nodo-horizontal .wf-dientes > .wf-peine-diente {
   align-items: flex-start;
   min-width: 18px;
   min-height: 0;
@@ -327,14 +383,14 @@
 }
 
 /* En horizontal el texto va derecho, apoyado sobre su tramo. */
-.wf-nodo-horizontal > .wf-peine-dientes > .wf-peine-diente > b {
+.wf-nodo-horizontal .wf-dientes > .wf-peine-diente > b {
   writing-mode: horizontal-tb;
   margin: -2px 0 0;
   padding: 0 10px 0 4px;
   line-height: 11px;
 }
 
-.wf-nodo-horizontal > .wf-peine-dientes > .wf-peine-diente > i {
+.wf-nodo-horizontal .wf-dientes > .wf-peine-diente > i {
   top: calc(50% - 0.75px);
   right: 100%;
   bottom: auto;
@@ -374,4 +430,9 @@
 
 .wf-decision-filas > span > .react-flow__handle {
   right: -15px;
+}
+
+/* En una espera horizontal, cada tramo conserva su alto: la barra que los une se mide con él. */
+.wf-espera.wf-nodo-horizontal .wf-espera-tramos > .wf-peine-diente {
+  min-height: 22px;
 }

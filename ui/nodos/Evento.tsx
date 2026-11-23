@@ -1,8 +1,6 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import { Fragment } from 'react'
 import { salidasDe, type DatosEvento } from '../../modelo/nodos.js'
 import { useOrientacion } from '../canvas/orientacion'
-import { puntoEnCirculo } from './geometria'
 import { NodoBase, PuntoDeSalida, useRemedirPuntos } from './NodoBase'
 
 /**
@@ -22,36 +20,36 @@ const UNA_SALIDA = [{ id: 'salida', unica: true }]
 const SIN_SALIDAS: readonly { id: string; nombre?: string }[] = []
 
 /**
- * El círculo de la espera y de la interrupción. La caja del nodo es invisible y abarca el círculo y el nombre, así ocupa su lugar real cuando se acomoda el lienzo.
- * Lo que se ve es el círculo, y ahí van los puntos de conexión.
+ * El círculo de la espera y de la interrupción. La caja del nodo abarca el círculo, el nombre y las salidas: es un rectángulo
+ * translúcido que desenfoca lo que tiene detrás, para que las flechas que pasan por atrás no tapen el texto.
+ *
+ * Cada salida con nombre tiene su tramo recto, con el texto encima, y el punto de conexión al final: la flecha recién arranca
+ * donde el texto terminó. Una sola salida sin nombre va directo sobre el círculo.
  */
 function Circulo({ nombre, eventos, entrada, lateral = false }: { nombre: string; eventos: readonly { id: string; nombre?: string }[]; entrada: boolean; lateral?: boolean }) {
   const horizontal = useOrientacion() === 'horizontal'
-  useRemedirPuntos(`${horizontal}-${entrada}-${eventos.length}`)
+  useRemedirPuntos(`${horizontal}-${entrada}-${eventos.map((e) => e.nombre ?? '').join('|')}`)
+  const lado = horizontal ? Position.Right : Position.Bottom
+  const conTramos = eventos.some((e) => e.nombre)
   return (
     <div className={`wf-espera ${horizontal ? 'wf-nodo-horizontal' : 'wf-nodo-vertical'}`}>
-      <div className={lateral ? 'wf-espera-circulo wf-espera-lateral' : 'wf-espera-circulo'}>
-        {entrada && <Handle type="target" position={horizontal ? Position.Left : Position.Top} />}
-        {eventos.map((s, i) => {
-          const { x, y, antes } = puntoEnCirculo(i, eventos.length, horizontal)
-          const lugar = { left: `${x}%`, top: `${y}%` }
-          return (
-            <Fragment key={s.id}>
-              <PuntoDeSalida
-                salida={{ ...s, unica: true }}
-                lado={horizontal ? Position.Right : Position.Bottom}
-                style={{ ...lugar, right: 'auto', bottom: 'auto', transform: 'translate(-50%, -50%)' }}
-              />
-              {s.nombre && (
-                <span className={`wf-espera-salida ${antes ? 'wf-rotulo-antes' : 'wf-rotulo-despues'}`} style={lugar}>
-                  {s.nombre}
-                </span>
-              )}
-            </Fragment>
-          )
-        })}
-      </div>
       <div className="wf-espera-nombre">{nombre}</div>
+      <div className="wf-espera-cuerpo">
+        <div className={lateral ? 'wf-espera-circulo wf-espera-lateral' : 'wf-espera-circulo'}>
+          {entrada && <Handle type="target" position={horizontal ? Position.Left : Position.Top} />}
+          {!conTramos && eventos.map((s) => <PuntoDeSalida key={s.id} salida={{ ...s, unica: true }} lado={lado} />)}
+        </div>
+        {conTramos && (
+          <div className="wf-espera-tramos wf-dientes">
+            {eventos.map((s) => (
+              <span key={s.id} className="wf-peine-diente">
+                <b>{s.nombre}</b>
+                <PuntoDeSalida salida={{ ...s, unica: true }} lado={lado} />
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

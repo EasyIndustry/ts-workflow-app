@@ -45,7 +45,7 @@ function Peine({ nombre, salidas, horizontal }: Dibujo) {
         <Handle type="target" position={horizontal ? Position.Left : Position.Top} />
         <div className="wf-rombo-nombre">{nombre}</div>
       </div>
-      <div className="wf-peine-dientes">
+      <div className="wf-peine-dientes wf-dientes">
         {salidas.map((s, i) => {
           // El rombo se va cerrando hacia las puntas: el tramo de cada rama se alarga hacia atrás hasta tocar su borde.
           const hueco = (horizontal ? 170 : FONDO) * Math.abs((i + 0.5) / salidas.length - 0.5)
