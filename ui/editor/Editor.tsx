@@ -22,7 +22,8 @@ export function Editor({ capacidades, children, ...lienzo }: EditorProps) {
   const [preferencias, cambiarPreferencias] = usePreferencias()
   const [configurando, setConfigurando] = useState(false)
   return (
-    <ReactFlowProvider>
+    // El proveedor arranca ya con los nodos y las flechas: lo que mira el lienzo los ve desde el primer dibujo.
+    <ReactFlowProvider initialNodes={lienzo.defaultNodes} initialEdges={lienzo.defaultEdges}>
       <div className="wf-editor">
         <div className="wf-editor-lienzo">
           <Lienzo<NodoDeFlujo>
