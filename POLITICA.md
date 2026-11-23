@@ -41,7 +41,8 @@ maneja la app. No se envía nada a un lugar central.
 
 ## El límite, controlado
 
-`test/limites.test.mjs` es una lista blanca: `ui/` solo importa React, React Flow, el core, los plugins y sus propios archivos.
+`test/limites.test.mjs` es una lista blanca: `ui/` solo importa React, React Flow, elkjs (el acomodo
+automático), el core, los plugins y sus propios archivos.
 Una dependencia nueva se suma ahí a propósito.
 
 ## Instalar y actualizar

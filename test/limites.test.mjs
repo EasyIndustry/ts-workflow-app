@@ -5,12 +5,12 @@ import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 /**
- * El límite de la app, como lista blanca (POLITICA.md): `ui/` solo importa React, React Flow, el core, los plugins y sus propios
+ * El límite de la app, como lista blanca (POLITICA.md): `ui/` solo importa React, React Flow, elkjs, el core, los plugins y sus propios
  * archivos. Una dependencia nueva se suma acá a propósito, no por descuido.
  */
 const raiz = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const ui = join(raiz, 'ui')
-const PERMITIDOS = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, /^@xyflow\/react(\/.*)?$/, /^ts-workflow-core$/, /^ts-workflow-plugins(\/.*)?$/]
+const PERMITIDOS = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, /^@xyflow\/react(\/.*)?$/, /^elkjs(\/.*)?$/, /^ts-workflow-core$/, /^ts-workflow-plugins(\/.*)?$/]
 const SOLO_EN_STORIES = [/^@storybook\/react-vite$/, /^storybook(\/.*)?$/]
 
 function archivos(dir) {

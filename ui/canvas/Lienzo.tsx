@@ -1,6 +1,7 @@
 import { Background, Panel, ReactFlow, type Edge, type Node, type ReactFlowProps } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useState } from 'react'
+import { BotonAcomodar } from './BotonAcomodar'
 import { ContextoOrientacion, type Orientacion } from './orientacion'
 
 export type LienzoProps<N extends Node = Node, E extends Edge = Edge> = ReactFlowProps<N, E> & {
@@ -9,8 +10,8 @@ export type LienzoProps<N extends Node = Node, E extends Edge = Edge> = ReactFlo
 }
 
 /**
- * El lienzo: React Flow con su comportamiento de fábrica y todas sus props. Lo propio es cancelar el menú del click derecho y el
- * botón que cambia la orientación: los nodos mueven sus puntos de conexión, las posiciones no cambian. Ocupa el alto y el ancho de
+ * El lienzo: React Flow con su comportamiento de fábrica y todas sus props. Lo propio es cancelar el menú del click derecho y dos
+ * botones: «Acomodar», que ordena los nodos solos, y el que cambia la orientación (mueve los puntos de conexión, no los nodos). Ocupa el alto y el ancho de
  * su contenedor, que tiene que tener tamaño.
  */
 export function Lienzo<N extends Node = Node, E extends Edge = Edge>({ children, onContextMenu, orientacionInicial = 'vertical', ...resto }: LienzoProps<N, E>) {
@@ -26,7 +27,8 @@ export function Lienzo<N extends Node = Node, E extends Edge = Edge>({ children,
         }}
       >
         <Background />
-        <Panel position="top-right">
+        <Panel position="top-right" style={{ display: 'flex', gap: 8 }}>
+          <BotonAcomodar />
           <button type="button" onClick={() => setOrientacion(otra)}>
             Pasar a {otra}
           </button>

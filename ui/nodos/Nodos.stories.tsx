@@ -1,12 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { Edge } from '@xyflow/react'
 import { Lienzo } from '../canvas/Lienzo'
 import { TIPOS_DE_NODO, type NodoDeFlujo } from './index'
 
-/** Cada story muestra un tipo de nodo solo en el lienzo. En «Todos» están juntos, sin flechas, para probar cómo se conectan. */
-function Muestra({ nodos }: { nodos: NodoDeFlujo[] }) {
+/**
+ * Cada story muestra un tipo de nodo solo en el lienzo. En «Todos» están juntos, sin flechas, para probar cómo se conectan. En
+ * «Conectados» ya tienen flechas y están amontonados, para probar «Acomodar».
+ */
+function Muestra({ nodos, flechas = [] }: { nodos: NodoDeFlujo[]; flechas?: Edge[] }) {
   return (
     <div style={{ height: '100vh' }}>
-      <Lienzo<NodoDeFlujo> nodeTypes={TIPOS_DE_NODO} defaultNodes={nodos} defaultEdges={[]} fitView fitViewOptions={{ maxZoom: 1.5 }} />
+      <Lienzo<NodoDeFlujo> nodeTypes={TIPOS_DE_NODO} defaultNodes={nodos} defaultEdges={flechas} fitView fitViewOptions={{ maxZoom: 1.5 }} />
     </div>
   )
 }
@@ -58,6 +62,31 @@ export const Todos: Story = {
       { ...funcion, ...en(300, 140) },
       { ...subflujo, ...en(0, 300) },
       { id: 'final', type: 'estado', ...en(300, 300), data: { nombre: 'Cerrado', final: true } },
+    ],
+  },
+}
+
+const flecha = (source: string, target: string, sourceHandle = 'salida'): Edge => ({ id: `${source}-${sourceHandle}-${target}`, source, target, sourceHandle })
+
+export const Conectados: Story = {
+  args: {
+    nodos: [
+      { ...disparador, ...en(0, 0) },
+      { ...decision, ...en(40, 30) },
+      { ...funcion, ...en(80, 60) },
+      { ...subflujo, ...en(120, 90) },
+      { ...estado, ...en(160, 120) },
+      { id: 'final', type: 'estado', ...en(200, 150), data: { nombre: 'Cerrado', final: true } },
+    ],
+    flechas: [
+      flecha('disparador', 'decision'),
+      flecha('decision', 'subflujo', 'alto'),
+      flecha('decision', 'funcion', 'medio'),
+      flecha('decision', 'final', 'sino'),
+      flecha('subflujo', 'estado', 'aprobado'),
+      flecha('subflujo', 'final', 'rechazado'),
+      flecha('funcion', 'final'),
+      flecha('estado', 'final'),
     ],
   },
 }
