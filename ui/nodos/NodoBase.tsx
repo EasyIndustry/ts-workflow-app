@@ -1,5 +1,5 @@
 import { Handle, Position, useNodeConnections, useNodeId, useUpdateNodeInternals } from '@xyflow/react'
-import { useEffect } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import { useOrientacion } from '../canvas/orientacion'
 import './nodos.css'
 
@@ -11,7 +11,7 @@ export interface Salida {
 }
 
 export interface NodoBaseProps {
-  /** El rótulo del tipo de nodo: «Función», «Decisión»… */
+  /** El rótulo del tipo de nodo: «Función», «Estado»… */
   tipo: string
   nombre: string
   detalle?: string
@@ -21,31 +21,37 @@ export interface NodoBaseProps {
   salidas?: readonly Salida[]
 }
 
-function PuntoDeSalida({ salida, lado }: { salida: Salida; lado: Position }) {
+/** El punto de una salida. `style` lo ubica cuando el nodo no lo quiere en el medio del lado. */
+export function PuntoDeSalida({ salida, lado, style }: { salida: Salida; lado: Position; style?: CSSProperties }) {
   const conexiones = useNodeConnections({ handleType: 'source', handleId: salida.id })
   return (
     <Handle
       type="source"
       id={salida.id}
       position={lado}
+      style={style}
       isConnectable={!salida.unica || conexiones.length === 0}
       isValidConnection={(c) => c.source !== c.target}
     />
   )
 }
 
+/** Cuando los puntos de un nodo cambian de lugar, React Flow tiene que volver a medirlos para redibujar las flechas. */
+export function useRemedirPuntos(clave: string) {
+  const id = useNodeId()
+  const actualizar = useUpdateNodeInternals()
+  useEffect(() => {
+    if (id) actualizar(id)
+  }, [id, actualizar, clave])
+}
+
 /**
- * El cuerpo común de todos los nodos: tipo, nombre y detalle. En vertical la entrada va arriba y las salidas abajo; en horizontal,
- * la entrada a la izquierda y las salidas a la derecha. Cada salida con nombre lleva su punto pegado al rótulo.
+ * El cuerpo común de los nodos con forma de tarjeta: tipo, nombre y detalle. En vertical la entrada va arriba y las salidas abajo;
+ * en horizontal, la entrada a la izquierda y las salidas a la derecha. Cada salida con nombre lleva su punto pegado al rótulo.
  */
 export function NodoBase({ tipo, nombre, detalle, entrada = true, salidas = [] }: NodoBaseProps) {
   const horizontal = useOrientacion() === 'horizontal'
-  const id = useNodeId()
-  const actualizar = useUpdateNodeInternals()
-  // Los puntos cambian de lado: React Flow tiene que volver a medirlos para redibujar las flechas.
-  useEffect(() => {
-    if (id) actualizar(id)
-  }, [id, actualizar, horizontal, salidas.length])
+  useRemedirPuntos(`${horizontal}-${salidas.length}`)
 
   const ladoSalida = horizontal ? Position.Right : Position.Bottom
   const conNombre = salidas.some((s) => s.nombre)
