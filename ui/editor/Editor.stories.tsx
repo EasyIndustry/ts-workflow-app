@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { CAPACIDADES_DE_EJEMPLO, FLECHAS_DE_EJEMPLO, NODOS_DE_EJEMPLO } from '../ejemplo'
+import { CAPACIDADES_DE_EJEMPLO, EJECUTOR_DE_EJEMPLO, FLECHAS_DE_EJEMPLO, NODOS_DE_EJEMPLO, REGISTROS_DE_EJEMPLO } from '../ejemplo'
 import { Editor } from './Editor'
 
 /**
@@ -22,4 +22,13 @@ export default meta
 
 export const Completo: StoryObj<typeof meta> = {
   args: { capacidades: CAPACIDADES_DE_EJEMPLO, defaultNodes: NODOS_DE_EJEMPLO, defaultEdges: FLECHAS_DE_EJEMPLO, fitView: true, fitViewOptions: { maxZoom: 1.2 } },
+}
+
+/**
+ * Con «Probar»: abre el panel de prueba. El pedido de 250 termina bien; el de 4800 va por la otra rama y falla en una función que
+ * no tiene elegido qué hace.
+ */
+export const ConPrueba: StoryObj<typeof meta> = {
+  name: 'Con prueba',
+  args: { ...Completo.args, prueba: { ejecutor: EJECUTOR_DE_EJEMPLO, registros: REGISTROS_DE_EJEMPLO } },
 }

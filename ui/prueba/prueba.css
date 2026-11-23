@@ -1,0 +1,150 @@
+.wf-prueba {
+  box-sizing: border-box;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 380px;
+  height: 100%;
+  padding: 16px;
+  overflow-y: auto;
+  border-left: 1px solid var(--wf-borde);
+  background: var(--wf-tarjeta);
+  color: var(--wf-texto);
+  font-family: var(--wf-fuente);
+  font-size: 13px;
+}
+
+.wf-prueba > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wf-prueba h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wf-prueba p {
+  margin: 0;
+}
+
+.wf-prueba-controles {
+  display: flex;
+  gap: 8px;
+}
+
+.wf-prueba-boton {
+  padding: 6px 10px;
+  border: 1px solid var(--wf-borde);
+  border-radius: 6px;
+  background: var(--wf-tarjeta);
+  color: var(--wf-texto);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.wf-prueba-principal {
+  border-color: var(--wf-acento);
+  background: var(--wf-acento);
+  color: #ffffff;
+}
+
+.wf-prueba-boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wf-prueba-estado,
+.wf-prueba-nota {
+  color: var(--wf-tenue);
+  font-size: 12px;
+}
+
+/* Los sectores apilados: cada uno se abre y se cierra desde su título. */
+.wf-prueba > details {
+  border: 1px solid var(--wf-borde);
+  border-radius: 8px;
+}
+
+.wf-prueba > details > summary {
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wf-prueba-sector {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--wf-borde);
+}
+
+.wf-prueba-json {
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 260px;
+  margin: 0;
+  padding: 8px 10px;
+  overflow: auto;
+  border: 1px solid var(--wf-borde);
+  border-radius: 6px;
+  outline: none;
+  background: var(--wf-fondo);
+  color: var(--wf-texto);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+  resize: vertical;
+}
+
+textarea.wf-prueba-json:focus-visible {
+  border-color: var(--wf-acento);
+}
+
+.wf-prueba-error {
+  color: #b91c1c;
+}
+
+.wf-prueba-traza {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.wf-prueba-traza summary {
+  cursor: pointer;
+}
+
+.wf-prueba-traza summary > small {
+  display: block;
+  color: var(--wf-tenue);
+  font-size: 11px;
+}
+
+.wf-prueba-traza details > :not(summary) {
+  margin-top: 6px;
+}
+
+.wf-prueba-paso-mal > details > summary {
+  color: #b91c1c;
+}
+
+/* Las marcas en el lienzo mientras se prueba. Un resplandor sirve para cualquier forma de nodo. */
+.react-flow__node.wf-prueba-actual {
+  filter: drop-shadow(0 0 1px var(--wf-acento)) drop-shadow(0 0 6px var(--wf-acento));
+}
+
+.react-flow__node.wf-prueba-hecho {
+  filter: drop-shadow(0 0 1px #16a34a) drop-shadow(0 0 4px #16a34a);
+}
+
+.react-flow__node.wf-prueba-error {
+  filter: drop-shadow(0 0 1px #dc2626) drop-shadow(0 0 6px #dc2626);
+}

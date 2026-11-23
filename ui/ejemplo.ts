@@ -1,6 +1,8 @@
 import type { Edge } from '@xyflow/react'
 import type { Capacidad } from './inspector/Inspector'
 import type { NodoDeFlujo } from './nodos'
+import type { RegistroDePrueba } from './prueba/PanelDePrueba'
+import type { Ejecutor } from './prueba/recorrido'
 
 /** Un flujo genérico para las stories. No es el flujo de nadie. */
 export const CAPACIDADES_DE_EJEMPLO: Capacidad[] = [
@@ -21,3 +23,25 @@ export const NODOS_DE_EJEMPLO: NodoDeFlujo[] = [
 const flecha = (source: string, target: string, sourceHandle = 'salida'): Edge => ({ id: `${source}-${sourceHandle}-${target}`, source, target, sourceHandle })
 
 export const FLECHAS_DE_EJEMPLO: Edge[] = [flecha('inicio', 'aviso'), flecha('aviso', 'total'), flecha('total', 'tarea', 'alto'), flecha('total', 'fin', 'sino'), flecha('tarea', 'fin')]
+
+export const REGISTROS_DE_EJEMPLO: RegistroDePrueba[] = [
+  { id: '1', titulo: 'Pedido 1 · total 250', datos: { id: 1, cliente: 'Ana', total: 250 } },
+  { id: '2', titulo: 'Pedido 2 · total 4800', datos: { id: 2, cliente: 'Luis', total: 4800 } },
+]
+
+/**
+ * Un ejecutor de mentira, para probar el panel sin servidor. Las funciones «hacen» lo suyo si tienen elegida una capacidad, y si no
+ * fallan. Una decisión sale por su primera rama cuando el total de la entrada pasa de 1000, y si no por «si no».
+ */
+export const EJECUTOR_DE_EJEMPLO: Ejecutor = async (nodo, { entrada }) => {
+  await new Promise((listo) => setTimeout(listo, 350))
+  if (nodo.type === 'funcion') {
+    if (!nodo.data.capacidad) throw new Error('no tiene elegido qué hace.')
+    return { datos: { capacidad: nodo.data.capacidad, hecho: true } }
+  }
+  if (nodo.type === 'decision') {
+    const total = Number((entrada as { total?: unknown } | null)?.total ?? 0)
+    return { salida: total > 1000 ? nodo.data.ramas[0]?.id : 'sino', datos: { total } }
+  }
+  return {}
+}
