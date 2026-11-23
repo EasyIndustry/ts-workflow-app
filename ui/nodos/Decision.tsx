@@ -68,14 +68,16 @@ function Tarjeta({ nombre, salidas, horizontal }: Dibujo) {
     <div className="wf-nodo wf-decision-tarjeta">
       <Handle type="target" position={horizontal ? Position.Left : Position.Top} />
       <div className="wf-nodo-tipo">Decisión</div>
-      <div className="wf-nodo-nombre">{nombre}</div>
-      <div className="wf-decision-filas">
-        {salidas.map((s) => (
-          <span key={s.id}>
-            {s.nombre}
-            <PuntoDeSalida salida={{ ...s, unica: true }} lado={Position.Right} />
-          </span>
-        ))}
+      <div className="wf-nodo-cuerpo">
+        <div className="wf-nodo-nombre">{nombre}</div>
+        <div className="wf-decision-filas">
+          {salidas.map((s) => (
+            <span key={s.id}>
+              {s.nombre}
+              <PuntoDeSalida salida={{ ...s, unica: true }} lado={Position.Right} />
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   )

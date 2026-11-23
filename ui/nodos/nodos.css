@@ -4,7 +4,6 @@
  */
 .wf-nodo {
   min-width: 150px;
-  padding: 10px 14px;
   border: 1px solid var(--wf-borde, #e4e4e7);
   border-radius: 8px;
   background: var(--wf-tarjeta, #ffffff);
@@ -27,11 +26,21 @@
   background: var(--wf-tarjeta, #ffffff);
 }
 
+/* La franja del tipo: arriba de todo, separada del nombre por una línea. */
 .wf-nodo-tipo {
+  padding: 4px 14px;
+  border-bottom: 1px solid var(--wf-borde, #e4e4e7);
+  border-radius: 7px 7px 0 0;
+  background: var(--wf-suave, #f4f4f5);
   color: var(--wf-tenue, #71717a);
   font-size: 9px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+/* El relleno del cuerpo es el que usan los puntos de las salidas con nombre para llegar hasta el borde. */
+.wf-nodo-cuerpo {
+  padding: 8px 14px 10px;
 }
 
 .wf-nodo-nombre {
@@ -139,6 +148,10 @@
 /* El subflujo es el «proceso predefinido»: una tarjeta con una barra a cada costado. */
 .wf-nodo-subflujo {
   position: relative;
+}
+
+.wf-nodo-subflujo > .wf-nodo-cuerpo,
+.wf-nodo-subflujo > .wf-nodo-tipo {
   padding-inline: 22px;
 }
 
@@ -163,10 +176,16 @@
   right: -23px;
 }
 
-/* Inicio y fin son el óvalo de «terminador»: la misma tarjeta, con las puntas redondas. */
+/*
+ * Inicio y fin son el «terminador»: la misma tarjeta con la franja del tipo arriba y la parte de abajo bien redonda, para que se
+ * distingan de una función por la silueta.
+ */
 .wf-nodo-terminal {
-  padding-inline: 24px;
-  border-radius: 999px;
+  border-radius: 8px 8px 26px 26px;
+}
+
+.wf-nodo-terminal > .wf-nodo-cuerpo {
+  padding: 8px 22px 12px;
 }
 
 /*

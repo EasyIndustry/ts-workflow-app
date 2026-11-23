@@ -29,7 +29,10 @@ export function TarjetaFlotante() {
       >
         {tipoDeNodo(nodo)}
       </h2>
-      <Inspector key={nodo.id} nodo={nodo} onCambio={cambiar} onEliminar={eliminar} />
+      {/* El contenido se desplaza adentro de la tarjeta: con muchas ramas no entra en la pantalla. */}
+      <div className="wf-tarjeta-flotante-cuerpo">
+        <Inspector key={nodo.id} nodo={nodo} onCambio={cambiar} onEliminar={eliminar} />
+      </div>
     </section>
   )
 }

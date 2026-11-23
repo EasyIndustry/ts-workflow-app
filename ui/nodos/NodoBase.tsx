@@ -48,7 +48,7 @@ export function useRemedirPuntos(clave: string) {
 }
 
 /**
- * El cuerpo común de los nodos con forma de tarjeta: tipo, nombre y detalle. En vertical la entrada va arriba y las salidas abajo;
+ * El cuerpo común de los nodos con forma de tarjeta: una franja con el tipo y, debajo, el nombre y el detalle. En vertical la entrada va arriba y las salidas abajo;
  * en horizontal, la entrada a la izquierda y las salidas a la derecha. Cada salida con nombre lleva su punto pegado al rótulo.
  */
 export function NodoBase({ tipo, nombre, detalle, entrada = true, salidas = [], clase = '' }: NodoBaseProps) {
@@ -60,21 +60,23 @@ export function NodoBase({ tipo, nombre, detalle, entrada = true, salidas = [], 
   return (
     <div className={`wf-nodo ${horizontal ? 'wf-nodo-horizontal' : 'wf-nodo-vertical'} ${clase}`}>
       {entrada && <Handle type="target" position={horizontal ? Position.Left : Position.Top} />}
+      {/* El tipo va en una franja propia, separada del nombre por una línea. */}
       <div className="wf-nodo-tipo">{tipo}</div>
-      <div className="wf-nodo-nombre">{nombre}</div>
-      {detalle && <div className="wf-nodo-detalle">{detalle}</div>}
-      {conNombre ? (
-        <div className="wf-nodo-salidas">
-          {salidas.map((s) => (
-            <span key={s.id}>
-              {s.nombre}
-              <PuntoDeSalida salida={s} lado={ladoSalida} />
-            </span>
-          ))}
-        </div>
-      ) : (
-        salidas.map((s) => <PuntoDeSalida key={s.id} salida={s} lado={ladoSalida} />)
-      )}
+      <div className="wf-nodo-cuerpo">
+        <div className="wf-nodo-nombre">{nombre}</div>
+        {detalle && <div className="wf-nodo-detalle">{detalle}</div>}
+        {conNombre && (
+          <div className="wf-nodo-salidas">
+            {salidas.map((s) => (
+              <span key={s.id}>
+                {s.nombre}
+                <PuntoDeSalida salida={s} lado={ladoSalida} />
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      {!conNombre && salidas.map((s) => <PuntoDeSalida key={s.id} salida={s} lado={ladoSalida} />)}
     </div>
   )
 }
