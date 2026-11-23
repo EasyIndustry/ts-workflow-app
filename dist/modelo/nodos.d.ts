@@ -24,7 +24,8 @@ export type Rama = Nombrado & {
 /**
  * Un evento: algo que pasa afuera del flujo y que el flujo atrapa.
  * - `inicio`: lo que arranca el flujo.
- * - `fin`: donde termina. En un subflujo, su nombre es el resultado con el que sale.
+ * - `fin`: donde termina. En un subflujo, su nombre es el resultado con el que sale. Si es un `rechazo`, no termina nada: la
+ *   acción no se permite.
  * - `espera`: el flujo se detiene hasta que pase uno de los `eventos` que escucha, y sale por el primero que ocurra.
  * - `interrupcion`: un evento que puede llegar en cualquier momento, salvo en las esperas de `excepto`. Desvía el flujo en curso
  *   o, si es `lateral`, hace lo suyo sin moverlo de donde estaba.
@@ -36,6 +37,11 @@ export type DatosEvento = {
     eventos?: readonly EventoEscuchado[];
     /** En un inicio o una interrupción: el id de la acción del sistema que lo produce. */
     accion?: string;
+    /**
+     * En un fin: es un rechazo. La acción que trajo el flujo hasta acá no se permite y todo sigue donde estaba; el nombre es el
+     * motivo, que es lo que se le dice a la persona.
+     */
+    rechazo?: boolean;
     /** En una interrupción: los ids de las esperas donde no aplica. */
     excepto?: readonly string[];
     /**
@@ -98,4 +104,6 @@ export declare function salidasDe(nodo: NodoGuardado): readonly {
 /** Si al nodo le pueden llegar flechas. Un inicio y una interrupción no reciben: son por donde se entra al flujo. */
 export declare function esEntrada(nodo: NodoGuardado): boolean;
 export declare function esFin(nodo: NodoGuardado): boolean;
+/** Si el nodo es un rechazo: un fin que no termina el flujo, sino que no deja pasar la acción. */
+export declare function esRechazo(nodo: NodoGuardado): boolean;
 export {};

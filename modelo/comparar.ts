@@ -21,6 +21,7 @@ const CAMPOS: Record<string, string> = {
   accion: 'Qué acción lo produce',
   params: 'Con qué datos',
   lateral: 'No desvía el flujo',
+  rechazo: 'Es un rechazo',
   ramas: 'Ramas',
   eventos: 'Eventos que escucha',
   excepto: 'No aplica en',

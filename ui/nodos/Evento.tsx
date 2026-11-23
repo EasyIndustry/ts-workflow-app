@@ -8,7 +8,8 @@ import { NodoBase, PuntoDeSalida, useRemedirPuntos } from './NodoBase'
 /**
  * Un evento: algo que pasa afuera del flujo y que el flujo atrapa. Tres variantes:
  * - `inicio`: lo que arranca el flujo. Es el óvalo de «terminador», sin entrada.
- * - `fin`: donde termina. El mismo óvalo, sin salida. En un subflujo, su nombre es el resultado con el que sale.
+ * - `fin`: donde termina. El mismo óvalo, sin salida. En un subflujo, su nombre es el resultado con el que sale. Si es un
+ *   `rechazo` (borde rojo), no termina el flujo: la acción no se permite, y su nombre es el motivo.
  * - `espera`: el flujo se detiene acá hasta que pase uno de los `eventos` que escucha, y sale por el primero que ocurra. Es el
  *   único nodo donde el flujo queda parado. Es un círculo de borde doble, como el evento intermedio de BPMN.
  * - `interrupcion`: un evento que puede llegar en cualquier momento, esté donde esté el flujo, y lo desvía. No crea una instancia
@@ -60,5 +61,6 @@ export function Evento(props: NodeProps<NodoEvento>) {
   if (data.variante === 'espera') return <Circulo entrada nombre={data.nombre} eventos={salidasDe({ id: props.id, type: 'evento', position: { x: 0, y: 0 }, data })} />
   if (data.variante === 'interrupcion') return <Circulo entrada={false} lateral={data.lateral} nombre={data.nombre} eventos={UNA_SALIDA} />
   const inicio = data.variante === 'inicio'
-  return <NodoBase clase="wf-nodo-terminal" tipo={inicio ? 'Inicio' : 'Fin'} nombre={data.nombre} entrada={!inicio} salidas={inicio ? UNA_SALIDA : SIN_SALIDAS} />
+  const rechazo = !inicio && data.rechazo === true
+  return <NodoBase clase={rechazo ? 'wf-nodo-terminal wf-nodo-rechazo' : 'wf-nodo-terminal'} tipo={inicio ? 'Inicio' : rechazo ? 'Rechazo' : 'Fin'} nombre={data.nombre} entrada={!inicio} salidas={inicio ? UNA_SALIDA : SIN_SALIDAS} />
 }

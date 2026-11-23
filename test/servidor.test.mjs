@@ -65,6 +65,9 @@ async function recorrerAlmacen(almacen) {
   await almacen.publicar(sub.id)
   assert.deepEqual(await almacen.subflujos(), [{ id: sub.id, nombre: 'Revisar', versiones: [{ version: 1, salidas: [{ id: 'ok', nombre: 'aprobado' }] }, { version: 2, salidas: [{ id: 'ok', nombre: 'aprobado' }, { id: 'no', nombre: 'rechazado' }] }] }])
 
+  assert.equal((await almacen.contenidoDeVersion(sub.id, 1)).nodos.length, 2)
+  assert.equal((await almacen.contenidoDeVersion(sub.id, 2)).nodos.length, 3)
+  await assert.rejects(almacen.contenidoDeVersion(sub.id, 9), { name: 'ErrorNoExiste' })
   const usa = { id: 's', type: 'subflujo', data: { nombre: 'Revisar', flujo: sub.id, version: 1, salidas: [{ id: 'ok', nombre: 'aprobado' }] } }
   await almacen.guardarBorrador(maestro.id, validarContenido({ nodos: [inicio, usa, fin], flechas: [{ source: 'i', target: 's' }, { source: 's', sourceHandle: 'ok', target: 'z' }] }))
   const lista = await almacen.listar()
@@ -156,7 +159,7 @@ test('el servidor MCP: un agente arma un borrador y no puede publicar', async ()
   assert.deepEqual([inicial.result.protocolVersion, inicial.result.serverInfo.name, inicial.result.capabilities], ['2025-03-26', 'ts-workflow-app', { tools: {} }])
   assert.equal(await responder({ jsonrpc: '2.0', method: 'notifications/initialized' }), null)
   const { tools } = (await pedir('tools/list')).result
-  assert.deepEqual(tools.map((t) => t.name), ['guia', 'capacidades_listar', 'flujos_listar', 'flujo_abrir', 'subflujos_listar', 'flujo_crear', 'flujo_guardar_borrador', 'flujo_verificar'])
+  assert.deepEqual(tools.map((t) => t.name), ['guia', 'capacidades_listar', 'flujos_listar', 'flujo_abrir', 'subflujos_listar', 'flujo_crear', 'flujo_guardar_borrador', 'flujo_definicion', 'flujo_verificar'])
   assert.ok(!tools.some((t) => /publicar/.test(t.name)), 'no hay herramienta para publicar')
   assert.match((await usar('guia')).valor, /# Cómo armar un flujo/)
   assert.deepEqual((await usar('capacidades_listar', { buscar: 'AVISO' })).valor, CAPACIDADES)
@@ -206,4 +209,41 @@ test('verificar: las ramas sin condición y las capacidades que no existen', asy
     'error: Inicio «Llegó»: «Llegó» usa la acción «otra.accion», que no existe en este sistema.',
     'error: Decisión «¿Sirve?»: la rama «sí» usa la condición «no.existe», que no existe en este sistema.',
   ])
+})
+
+test('el servidor traduce un flujo a la definición del motor, con sus subflujos adentro', async () => {
+  const almacen = crearAlmacenEnMemoria()
+  const cliente = crearAlmacenHttp({ urlBase: 'http://app.test/api', fetch: fetchHacia({ almacen, capacidades: () => CAPACIDADES, puedeEditar: true, puedePublicar: true }) })
+  const sub = await cliente.crear('Requisitos', 'subflujo')
+  const pregunta = { id: 'd', type: 'decision', data: { nombre: '¿Está pago?', ramas: [{ id: 'si', nombre: 'sí', condicion: { condicion: 'pedido.pago' } }] } }
+  await almacen.guardarBorrador(sub.id, validarContenido({
+    nodos: [inicio, pregunta, { id: 'cumple', type: 'evento', data: { variante: 'fin', nombre: 'cumple' } }, { id: 'no', type: 'evento', data: { variante: 'fin', nombre: 'no cumple' } }],
+    flechas: [{ source: 'i', target: 'd' }, { source: 'd', sourceHandle: 'si', target: 'cumple' }, { source: 'd', sourceHandle: 'sino', target: 'no' }],
+  }))
+  await almacen.publicar(sub.id)
+
+  const maestro = await cliente.crear('Pedidos', 'maestro')
+  const nodos = [
+    inicio,
+    { id: 'nuevo', type: 'evento', data: { variante: 'espera', nombre: 'Nuevo', eventos: [{ id: 'cerrar', nombre: 'Cerrar', accion: 'pedidos.cerrar' }] } },
+    { id: 's', type: 'subflujo', data: { nombre: '¿Cumple?', flujo: sub.id, version: 1, salidas: [{ id: 'cumple', nombre: 'cumple' }, { id: 'no', nombre: 'no cumple' }] } },
+    { id: 'falta', type: 'evento', data: { variante: 'fin', nombre: 'Falta el pago', rechazo: true } },
+    fin,
+  ]
+  const flechas = [{ source: 'i', target: 'nuevo' }, { source: 'nuevo', sourceHandle: 'cerrar', target: 's' }, { source: 's', sourceHandle: 'cumple', target: 'z' }, { source: 's', sourceHandle: 'no', target: 'falta' }]
+  await cliente.guardarBorrador(maestro.id, { nodos, flechas })
+  assert.deepEqual(await cliente.definicion(maestro.id), {
+    problemas: [],
+    definicion: {
+      id: maestro.id,
+      version: 1,
+      nombre: 'Pedidos',
+      estadoInicial: 'nuevo',
+      estados: [{ id: 'nuevo', nombre: 'Nuevo' }, { id: 'z', nombre: 'Listo', final: true }],
+      transiciones: [{ id: 'cerrar', accion: 'pedidos.cerrar', nombre: 'Cerrar', hacia: 'z', requisitos: { condicion: 'pedido.pago' }, desde: ['nuevo'] }],
+    },
+  })
+  // Sin la acción en el evento no hay definición: dice qué falta.
+  await cliente.guardarBorrador(maestro.id, { nodos: nodos.map((n) => (n.id === 'nuevo' ? { ...n, data: { ...n.data, eventos: [{ id: 'cerrar', nombre: 'Cerrar' }] } } : n)), flechas })
+  assert.deepEqual(await cliente.definicion(maestro.id), { problemas: ['«Cerrar» no tiene elegida la acción que lo produce.'] })
 })

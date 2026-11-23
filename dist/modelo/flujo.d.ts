@@ -63,6 +63,8 @@ export interface Almacen {
     publicar(id: string): Promise<number>;
     /** Los subflujos que ya tienen al menos una versión publicada. */
     subflujos(): Promise<ContratoDeSubflujo[]>;
+    /** El contenido de una versión publicada de un flujo, tal como quedó. */
+    contenidoDeVersion(id: string, version: number): Promise<ContenidoDeFlujo>;
 }
 /** Deja de un lienzo solo lo que se guarda, siempre con la misma forma, para poder comparar dos contenidos como texto. */
 export declare function contenidoDe(nodos: readonly NodoGuardado[], flechas: readonly FlechaGuardada[]): ContenidoDeFlujo;

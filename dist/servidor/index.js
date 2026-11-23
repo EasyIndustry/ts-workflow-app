@@ -3,8 +3,9 @@
  * pedidos, sin atarse a ningún servidor web.
  */
 export { crearAlmacenPostgres, idDesdeNombre, migrar } from './almacenPostgres.js';
-export { atender } from './http.js';
+export { atender, definicionDe } from './http.js';
 export { crearAlmacenEnMemoria } from '../modelo/almacenEnMemoria.js';
 export * from '../modelo/flujo.js';
 export { verificarFlujo } from '../modelo/verificar.js';
 export { compararFlujos } from '../modelo/comparar.js';
+export { definicionDeFlujo } from '../modelo/definicion.js';

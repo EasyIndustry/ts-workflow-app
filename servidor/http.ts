@@ -1,4 +1,5 @@
-import { ErrorDeContenido, ErrorNoExiste, validarContenido, type Almacen, type Capacidad } from '../modelo/flujo.js'
+import { definicionDeFlujo, type Traduccion } from '../modelo/definicion.js'
+import { ErrorDeContenido, ErrorNoExiste, validarContenido, type Almacen, type Capacidad, type ContenidoDeFlujo } from '../modelo/flujo.js'
 import { verificarFlujo, type Problema } from '../modelo/verificar.js'
 
 /** Un pedido, sin atarse a ningún servidor web: el sistema donde está montada la app lo arma desde el suyo. */
@@ -36,6 +37,29 @@ async function problemasDe(id: string, opciones: OpcionesDeAtencion): Promise<Pr
 }
 
 /**
+ * La definición de `ts-workflow-core` de un flujo: su contenido actual (el borrador si lo hay) traducido, con los subflujos que usa
+ * abiertos en su lugar. Es lo que un sistema le pasa a su motor para que valide con este flujo. El número de versión es el que
+ * tendría al publicarse.
+ */
+export async function definicionDe(almacen: Almacen, id: string): Promise<Traduccion> {
+  const flujo = await almacen.abrir(id)
+  // Se traen primero todos los subflujos que hacen falta, también los que usan otros subflujos: traducir no espera a nadie.
+  const subflujos = new Map<string, ContenidoDeFlujo>()
+  const pendientes = [flujo.contenido]
+  for (let contenido = pendientes.pop(); contenido; contenido = pendientes.pop()) {
+    for (const n of contenido.nodos) {
+      const clave = n.type === 'subflujo' ? `${n.data.flujo}@${n.data.version}` : ''
+      if (n.type !== 'subflujo' || !n.data.flujo || subflujos.has(clave)) continue
+      const adentro = await almacen.contenidoDeVersion(n.data.flujo, n.data.version).catch(() => undefined)
+      if (!adentro) continue
+      subflujos.set(clave, adentro)
+      pendientes.push(adentro)
+    }
+  }
+  return definicionDeFlujo(flujo.contenido, { id, nombre: flujo.nombre, version: (flujo.version ?? 0) + (flujo.conBorrador ? 1 : 0), subflujo: (s, v) => subflujos.get(`${s}@${v}`) })
+}
+
+/**
  * Atiende un pedido de la app de flujos y devuelve qué responder. El servidor no confía en la pantalla: revisa la forma de lo que
  * llega y, antes de publicar, vuelve a verificar el flujo.
  *
@@ -46,6 +70,8 @@ async function problemasDe(id: string, opciones: OpcionesDeAtencion): Promise<Pr
  * | `GET /flujos/:id` | Lo abre, con su contenido. |
  * | `PUT /flujos/:id/borrador` | Guarda el borrador: `{ contenido }`. |
  * | `GET /flujos/:id/verificacion` | Los problemas del borrador. |
+ * | `GET /flujos/:id/definicion` | El flujo traducido a una definición de `ts-workflow-core`, o por qué no se puede. |
+ * | `GET /flujos/:id/versiones/:n` | El contenido de una versión publicada. |
  * | `POST /flujos/:id/publicar` | Publica el borrador si no tiene errores. |
  * | `GET /subflujos` | Los subflujos publicados, con sus salidas. |
  * | `GET /capacidades` | Lo que una función puede hacer en este sistema. |
@@ -62,6 +88,8 @@ export async function atender(pedido: Pedido, opciones: OpcionesDeAtencion): Pro
     if (es('GET', 'capacidades')) return bien(await opciones.capacidades())
     if (es('GET', 'flujos', null)) return bien(await opciones.almacen.abrir(id))
     if (es('GET', 'flujos', null, 'verificacion')) return bien({ problemas: await problemasDe(id, opciones) })
+    if (es('GET', 'flujos', null, 'definicion')) return bien(await definicionDe(opciones.almacen, id))
+    if (es('GET', 'flujos', null, 'versiones', null)) return bien(await opciones.almacen.contenidoDeVersion(id, Number(partes[3])))
 
     if (es('POST', 'flujos')) {
       if (!opciones.puedeEditar) return mal(403, 'No tenés permiso para crear flujos.')

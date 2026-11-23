@@ -54,6 +54,12 @@ export const HERRAMIENTAS = [
         },
     },
     {
+        name: 'flujo_definicion',
+        description: 'El flujo traducido a la definición que usa el motor para validar, o la lista de lo que impide traducirlo (un evento sin acción, una rama sin condición…). Sirve para saber si el flujo ya se puede ejecutar.',
+        inputSchema: objeto({ id: { type: 'string' } }, ['id']),
+        hacer: (sistema, args) => sistema.definicion(texto(args['id'], 'id')),
+    },
+    {
         name: 'flujo_verificar',
         description: 'Los problemas del borrador de un flujo. Los de nivel «error» impiden publicarlo; los de «aviso», no.',
         inputSchema: objeto({ id: { type: 'string' } }, ['id']),

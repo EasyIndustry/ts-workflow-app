@@ -6,8 +6,8 @@ una persona vea, controle y publique flujos. No lleva lógica de negocio de nadi
 
 **Estado:** recién empieza. Hoy tiene el lienzo (orientación vertical u horizontal y acomodo automático), los nodos, el inspector
 (como barra lateral o tarjeta flotante), la configuración, la lista de flujos con guardado del borrador y publicación (con
-verificación y comparación contra la versión vigente) y el panel para probar un flujo. Tiene servidor (Postgres) y servidor MCP para agentes. La prueba de un flujo todavía usa un
-ejecutor de mentira, y lo que se guarda es el dibujo: falta traducirlo a una definición del core para ejecutarlo.
+verificación y comparación contra la versión vigente) y el panel para probar un flujo. Tiene servidor (Postgres) y servidor MCP para agentes. Un flujo se traduce a una definición del core para que el motor valide con él.
+La prueba de un flujo todavía es un ensayo: no ejecuta nada de verdad.
 
 ## Simbología
 
@@ -18,6 +18,7 @@ Los nodos siguen los símbolos de siempre, para que cualquiera que lea diagramas
 |---|---|---|
 | **Inicio** | óvalo (terminador) | Lo que arranca el flujo. |
 | **Fin** | óvalo (terminador) | Donde termina. En un subflujo, su nombre es el resultado con el que sale. |
+| **Rechazo** | el mismo óvalo, de borde rojo | La acción que trajo el flujo hasta ahí no se permite y todo sigue donde estaba. Su nombre es el motivo. |
 | **Espera** | círculo de borde doble | El flujo se detiene hasta que pase uno de los eventos que escucha. Es el único nodo donde queda parado. |
 | **Interrupción** | el mismo círculo de borde doble, sin entrada | Un evento que puede llegar en cualquier momento y desvía el flujo que está corriendo. |
 | **Función** | rectángulo (proceso) | Hace algo y sigue. Es una capacidad del registro. |
@@ -62,6 +63,18 @@ const { estado, cuerpo } = await atender(
 
 Antes de publicar, el servidor vuelve a verificar el flujo: no confía en la pantalla.
 
+**Para que el motor valide con un flujo**, el servidor lo traduce a una definición de `ts-workflow-core`:
+
+```ts
+import { definicionDe } from 'ts-workflow-app/servidor'
+
+const { definicion, problemas } = await definicionDe(almacen, 'pedidos')   // también en GET /flujos/pedidos/definicion
+```
+
+Cada espera es un estado y cada evento, una transición con la acción del sistema que lo produce. Una decisión que lleva a un
+rechazo es un requisito; una función es un efecto; un subflujo se abre en su lugar. Si el flujo tiene algo que el motor no puede
+expresar (un evento sin acción, una rama sin condición), no se traduce a medias: `problemas` dice qué falta.
+
 **En la interfaz**, un componente de React:
 
 ```tsx
@@ -81,7 +94,7 @@ const almacen = crearAlmacenHttp({ urlBase: '/api/flujos-app', encabezados: () =
 ```
 
 Herramientas: `guia`, `capacidades_listar`, `flujos_listar`, `flujo_abrir`, `subflujos_listar`, `flujo_crear`,
-`flujo_guardar_borrador` y `flujo_verificar`. **No hay herramienta para publicar**, y el sistema tiene que negarle ese permiso a la
+`flujo_guardar_borrador`, `flujo_definicion` y `flujo_verificar`. **No hay herramienta para publicar**, y el sistema tiene que negarle ese permiso a la
 credencial del agente: un agente arma el borrador y una persona lo revisa y lo publica.
 
 ## Probar

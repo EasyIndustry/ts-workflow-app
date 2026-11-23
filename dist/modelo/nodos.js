@@ -8,7 +8,9 @@ const VARIANTES = { inicio: 'Inicio', fin: 'Fin', espera: 'Espera', interrupcion
 const TIPOS = { funcion: 'Función', decision: 'Decisión', subflujo: 'Subflujo' };
 /** El nombre del tipo de nodo, como se le dice a una persona. */
 export function tipoDeNodo(nodo) {
-    return nodo.type === 'evento' ? VARIANTES[nodo.data.variante] : TIPOS[nodo.type ?? 'funcion'];
+    if (nodo.type === 'evento')
+        return nodo.data.variante === 'fin' && nodo.data.rechazo ? 'Rechazo' : VARIANTES[nodo.data.variante];
+    return TIPOS[nodo.type ?? 'funcion'];
 }
 /** Cómo nombrar un nodo en una frase: «Función «Avisar al responsable»». */
 export function rotuloDeNodo(nodo) {
@@ -36,4 +38,8 @@ export function esEntrada(nodo) {
 }
 export function esFin(nodo) {
     return nodo.type === 'evento' && nodo.data.variante === 'fin';
+}
+/** Si el nodo es un rechazo: un fin que no termina el flujo, sino que no deja pasar la acción. */
+export function esRechazo(nodo) {
+    return nodo.type === 'evento' && nodo.data.variante === 'fin' && nodo.data.rechazo === true;
 }

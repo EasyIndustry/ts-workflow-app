@@ -60,6 +60,12 @@ export function crearAlmacenEnMemoria(iniciales = [], ahora = () => new Date().t
             f.publicadoEl = ahora();
             return nueva;
         },
+        contenidoDeVersion: async (id, numero) => {
+            const contenido = buscar(id).versiones.get(numero);
+            if (!contenido)
+                throw new ErrorNoExiste(`${id}, versión ${numero}`);
+            return contenido;
+        },
         subflujos: async () => [...flujos.values()]
             .filter((f) => f.tipo === 'subflujo' && f.versiones.size > 0)
             .map((f) => ({ id: f.id, nombre: f.nombre, versiones: [...f.versiones].sort(([a], [b]) => a - b).map(([v, c]) => ({ version: v, salidas: salidasDeContenido(c) })) })),

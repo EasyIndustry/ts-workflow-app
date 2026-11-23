@@ -1,3 +1,4 @@
+import type { Traduccion } from '../modelo/definicion.js';
 import type { Almacen, Capacidad } from '../modelo/flujo.js';
 import type { Problema } from '../modelo/verificar.js';
 export interface OpcionesAlmacenHttp {
@@ -18,4 +19,5 @@ export declare class ErrorDelServidor extends Error {
 export declare function crearAlmacenHttp(opciones: OpcionesAlmacenHttp): Almacen & {
     capacidades(): Promise<Capacidad[]>;
     verificar(id: string): Promise<Problema[]>;
+    definicion(id: string): Promise<Traduccion>;
 };

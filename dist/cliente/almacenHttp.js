@@ -34,6 +34,8 @@ export function crearAlmacenHttp(opciones) {
         guardarBorrador: async (id, contenido) => void (await pedir('PUT', `${de(id)}/borrador`, { contenido })),
         publicar: async (id) => (await pedir('POST', `${de(id)}/publicar`)).version,
         subflujos: () => pedir('GET', '/subflujos'),
+        contenidoDeVersion: (id, version) => pedir('GET', `${de(id)}/versiones/${version}`),
+        definicion: (id) => pedir('GET', `${de(id)}/definicion`),
         capacidades: () => pedir('GET', '/capacidades'),
         verificar: async (id) => (await pedir('GET', `${de(id)}/verificacion`)).problemas,
     };

@@ -124,6 +124,12 @@ export function crearAlmacenPostgres(cliente, opciones = {}) {
                 throw new ErrorNoExiste(id);
             throw new Error('No hay cambios para publicar.');
         },
+        contenidoDeVersion: async (id, version) => {
+            const { rows } = await cliente.query('SELECT contenido FROM flujo.app_versiones WHERE flujo = $1 AND version = $2', [id, version]);
+            if (rows.length === 0)
+                throw new ErrorNoExiste(`${id}, versión ${version}`);
+            return rows[0].contenido;
+        },
         subflujos: async () => {
             const { rows } = await cliente.query(`SELECT f.id, f.nombre, v.version, v.contenido FROM flujo.app_flujos f JOIN flujo.app_versiones v ON v.flujo = f.id WHERE f.tipo = 'subflujo' ORDER BY f.nombre, f.id, v.version`);
             const contratos = new Map();

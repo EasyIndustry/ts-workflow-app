@@ -13,6 +13,7 @@ const PIEZAS: readonly { clave: string; nombre: string; tipo: NonNullable<NodoDe
   { clave: 'interrupcion', nombre: 'Interrupción', tipo: 'evento', datos: () => ({ variante: 'interrupcion', nombre: 'Pasó algo' }), soloEnMaestro: true },
   { clave: 'subflujo', nombre: 'Subflujo', tipo: 'subflujo', datos: () => ({ nombre: 'Subflujo', flujo: '', version: 0, salidas: [] }) },
   { clave: 'fin', nombre: 'Fin', tipo: 'evento', datos: () => ({ variante: 'fin', nombre: 'Fin' }) },
+  { clave: 'rechazo', nombre: 'Rechazo', tipo: 'evento', datos: () => ({ variante: 'fin', nombre: 'No se puede', rechazo: true }) },
 ]
 
 /**

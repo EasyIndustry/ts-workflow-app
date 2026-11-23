@@ -1,3 +1,4 @@
+import type { Traduccion } from '../modelo/definicion.js'
 import type { Almacen, Capacidad } from '../modelo/flujo.js'
 import type { Problema } from '../modelo/verificar.js'
 
@@ -23,7 +24,7 @@ export class ErrorDelServidor extends Error {
 }
 
 /** El almacén de flujos hablando con el servidor de la app. Suma lo que el servidor sabe y el almacén no: capacidades y verificación. */
-export function crearAlmacenHttp(opciones: OpcionesAlmacenHttp): Almacen & { capacidades(): Promise<Capacidad[]>; verificar(id: string): Promise<Problema[]> } {
+export function crearAlmacenHttp(opciones: OpcionesAlmacenHttp): Almacen & { capacidades(): Promise<Capacidad[]>; verificar(id: string): Promise<Problema[]>; definicion(id: string): Promise<Traduccion> } {
   const base = opciones.urlBase.replace(/\/+$/, '')
   async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
     const respuesta = await (opciones.fetch ?? fetch)(base + ruta, {
@@ -47,6 +48,8 @@ export function crearAlmacenHttp(opciones: OpcionesAlmacenHttp): Almacen & { cap
     guardarBorrador: async (id, contenido) => void (await pedir('PUT', `${de(id)}/borrador`, { contenido })),
     publicar: async (id) => (await pedir<{ version: number }>('POST', `${de(id)}/publicar`)).version,
     subflujos: () => pedir('GET', '/subflujos'),
+    contenidoDeVersion: (id, version) => pedir('GET', `${de(id)}/versiones/${version}`),
+    definicion: (id) => pedir('GET', `${de(id)}/definicion`),
     capacidades: () => pedir('GET', '/capacidades'),
     verificar: async (id) => (await pedir<{ problemas: Problema[] }>('GET', `${de(id)}/verificacion`)).problemas,
   }
