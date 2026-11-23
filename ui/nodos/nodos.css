@@ -1,46 +1,71 @@
 /*
- * Los nodos usan las variables de React Flow (--xy-*), así se ven como sus nodos de fábrica y siguen su tema claro u oscuro.
+ * Los nodos son tarjetas: fondo blanco, borde suave, sombra y puntos de conexión huecos. Usan las variables del lienzo (--wf-*),
+ * con un valor de respaldo por si se montan fuera de él.
  */
 .wf-nodo {
   min-width: 150px;
-  padding: 8px 12px;
-  border: var(--xy-node-border, var(--xy-node-border-default));
-  border-radius: var(--xy-node-border-radius, var(--xy-node-border-radius-default));
-  background: var(--xy-node-background-color, var(--xy-node-background-color-default));
-  color: var(--xy-node-color, var(--xy-node-color-default));
+  padding: 10px 14px;
+  border: 1px solid var(--wf-borde, #e4e4e7);
+  border-radius: 8px;
+  background: var(--wf-tarjeta, #ffffff);
+  box-shadow: var(--wf-sombra, 0 1px 2px rgb(0 0 0 / 6%), 0 2px 6px rgb(0 0 0 / 8%));
+  color: var(--wf-texto, #27272a);
   font-size: 12px;
   text-align: center;
 }
 
 .react-flow__node.selected > .wf-nodo {
-  box-shadow: var(--xy-node-boxshadow-selected, var(--xy-node-boxshadow-selected-default));
+  border-color: var(--wf-acento, #3b82f6);
+}
+
+.wf-nodo .react-flow__handle {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--wf-linea, #a1a1aa);
+  background: var(--wf-tarjeta, #ffffff);
 }
 
 .wf-nodo-tipo {
+  color: var(--wf-tenue, #71717a);
   font-size: 9px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.65;
 }
 
 .wf-nodo-nombre {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .wf-nodo-detalle {
+  color: var(--wf-tenue, #71717a);
   font-size: 10px;
-  opacity: 0.75;
 }
 
 .wf-nodo-salidas {
   display: flex;
-  justify-content: space-around;
   gap: 8px;
   margin-top: 6px;
+  color: var(--wf-tenue, #71717a);
   font-size: 10px;
-  opacity: 0.8;
 }
 
+/* Cada salida con nombre lleva su punto: abajo del rótulo en vertical, a su derecha en horizontal. El corrimiento lo saca hasta
+   el borde del nodo (el relleno más el borde). */
 .wf-nodo-salidas > span {
+  position: relative;
   flex: 1;
+}
+
+.wf-nodo-vertical .wf-nodo-salidas > span > .react-flow__handle {
+  bottom: -11px;
+}
+
+.wf-nodo-horizontal .wf-nodo-salidas {
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+.wf-nodo-horizontal .wf-nodo-salidas > span > .react-flow__handle {
+  right: -15px;
 }
