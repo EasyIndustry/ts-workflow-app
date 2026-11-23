@@ -22,6 +22,7 @@ const CAMPOS: Record<string, string> = {
   params: 'Con qué datos',
   lateral: 'No desvía el flujo',
   rechazo: 'Es un rechazo',
+  mensaje: 'Qué se le dice a la persona',
   ramas: 'Ramas',
   eventos: 'Eventos que escucha',
   excepto: 'No aplica en',

@@ -10,7 +10,8 @@ import { esRechazo, rotuloDeNodo, SALIDA_SI_NO, salidasDe, type FlechaGuardada, 
  * - Cada **evento** de una espera es una transición desde ese estado, y su `accion` es la acción del sistema que la produce. Una
  *   **interrupción** es una transición desde cualquier estado, con sus excepciones; si no desvía el flujo, no cambia el estado.
  * - Desde el evento se sigue el camino hasta la próxima espera o fin. Lo que hay en el medio se traduce así:
- *   - una **decisión** que por alguna rama lleva a un **rechazo** es un **requisito**: la acción solo se permite por las otras;
+ *   - una **decisión** que por alguna rama lleva a un **rechazo** es un **requisito**: la acción solo se permite por las otras.
+ *     Si el rechazo tiene mensaje, es lo que el motor le dice a la persona cuando esa condición no se cumple;
  *   - una decisión que lleva a destinos distintos es una **decisión** del core;
  *   - una **función** es un **efecto**, con una condición si no está en todos los caminos;
  *   - un **subflujo** se abre en el lugar: cuenta lo que tiene adentro.
@@ -42,7 +43,10 @@ const texto = (v: unknown) => JSON.stringify(v)
 // ── Condiciones ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** Las condiciones que tienen que cumplirse todas, como lista: una `todas` se abre, una sola queda sola. */
-const partes = (f: Formula): Json[] => (f === true ? [] : f === false ? [{ no: {} }] : Array.isArray(f['todas']) ? (f['todas'] as Json[]) : [f])
+// Una `todas` con mensaje propio no se abre: el mensaje es de todo el grupo.
+const partes = (f: Formula): Json[] => (f === true ? [] : f === false ? [{ no: {} }] : Array.isArray(f['todas']) && !('mensaje' in f) ? (f['todas'] as Json[]) : [f])
+/** La misma condición, con lo que se le dice a la persona cuando no se cumple. */
+const conMensaje = (f: Formula, mensaje: string | undefined): Formula => (mensaje && f !== true && f !== false ? { ...f, mensaje } : f)
 const todas = (lista: Formula[]): Formula => {
   if (lista.includes(false)) return false
   const unicas = [...new Map(lista.flatMap(partes).map((p) => [texto(p), p])).values()]
@@ -179,7 +183,24 @@ export function definicionDeFlujo(contenido: ContenidoDeFlujo, opciones: Opcione
     if (!nodo) return true
     const sigue = (salida: string) => permitido(destino(lugar.marco, nodo, salida), pasos + 1)
     if (nodo.type === 'funcion') return sigue('salida')
-    if (nodo.type === 'decision') return [...nodo.data.ramas].reverse().reduce<Formula>((resto, rama) => segun(rama.condicion ?? {}, sigue(rama.id), resto), sigue(SALIDA_SI_NO))
+    if (nodo.type === 'decision') {
+      // Si una salida va directo a un rechazo con mensaje, ese mensaje es el de la condición que lo causa.
+      const mensajeDe = (salida: string) => {
+        const flecha = lugar.marco.flechas.find((f) => f.source === nodo.id && f.sourceHandle === salida)
+        const llega = flecha && lugar.marco.nodos.get(flecha.target)
+        return llega?.type === 'evento' && esRechazo(llega) ? llega.data.mensaje : undefined
+      }
+      const delSiNo = mensajeDe(SALIDA_SI_NO)
+      return [...nodo.data.ramas].reverse().reduce<Formula>((resto, rama, i) => {
+        const condicion = rama.condicion ?? {}
+        const deLaRama = mensajeDe(rama.id)
+        // Por esta rama se rechaza: lo que se pide es que NO se cumpla.
+        if (deLaRama) return todas([conMensaje(no(condicion), deLaRama), resto])
+        // Es la última rama y por el «si no» se rechaza: lo que se pide es que se cumpla.
+        if (i === 0 && delSiNo) return todas([conMensaje(condicion, delSiNo), sigue(rama.id)])
+        return segun(condicion, sigue(rama.id), resto)
+      }, sigue(SALIDA_SI_NO))
+    }
     if (nodo.type === 'subflujo') {
       const adentro = opciones.subflujo?.(nodo.data.flujo, nodo.data.version)
       const inicio = adentro?.nodos.find((n) => n.type === 'evento' && n.data.variante === 'inicio')
@@ -196,7 +217,7 @@ export function definicionDeFlujo(contenido: ContenidoDeFlujo, opciones: Opcione
 
   const estados = new Map<string, Json>()
   const decisiones: Json[] = []
-  const transiciones: { id: string; desde: string[] | '*'; cuerpo: Json }[] = []
+  const transiciones: { id: string; desde: string[] | '*'; cuerpo: Json; decision?: Json }[] = []
   const anotarEstado = (id: string) => {
     const nodo = raiz.nodos.get(id)
     if (!nodo || estados.has(id)) return
@@ -215,6 +236,7 @@ export function definicionDeFlujo(contenido: ContenidoDeFlujo, opciones: Opcione
       // A dónde lleva. Si todos los caminos llegan al mismo lugar, es ese; si no, hace falta una decisión del core.
       const lugares = [...new Set(siguen.map((c) => texto(c.fin)))]
       let hacia: string | undefined
+      let decision: Json | undefined
       if (lugares.length === 1) {
         const fin = siguen[0]!.fin
         if (fin.tipo === 'estado') hacia = fin.estado
@@ -223,7 +245,7 @@ export function definicionDeFlujo(contenido: ContenidoDeFlujo, opciones: Opcione
         // El último camino queda como «si no»: como los caminos cubren todos los casos, es el que vale cuando ninguno de los otros.
         const ramas = siguen.slice(0, -1).map((c) => ({ si: c.condicion === true ? {} : c.condicion, hacia: (c.fin as { estado: string }).estado }))
         hacia = `${id}-destino`
-        decisiones.push({ id: hacia, nombre: `¿A dónde lleva «${nombre}»?`, ramas, sino: (siguen.at(-1)!.fin as { estado: string }).estado })
+        decision = { id: hacia, nombre: `¿A dónde lleva «${nombre}»?`, ramas, sino: (siguen.at(-1)!.fin as { estado: string }).estado }
       }
       for (const c of siguen) if (c.fin.tipo === 'estado') anotarEstado(c.fin.estado)
 
@@ -240,6 +262,7 @@ export function definicionDeFlujo(contenido: ContenidoDeFlujo, opciones: Opcione
         id,
         desde,
         cuerpo: { accion, nombre, ...(excepto?.length && { excepto: [...excepto] }), ...(hacia && { hacia }), ...(requisitos !== true && { requisitos }), ...(efectos.length > 0 && { efectos }) },
+        ...(decision && { decision }),
       })
     } catch (e) {
       if (!(e instanceof NoSePuede)) throw e
@@ -278,12 +301,28 @@ export function definicionDeFlujo(contenido: ContenidoDeFlujo, opciones: Opcione
     }
   }
 
-  // El mismo evento en varias esperas, si hace lo mismo, es una sola transición desde todas. Si no, cada una con su id.
+  // El mismo evento en varias esperas, si hace lo mismo, es una sola transición desde todas (con una sola decisión de destino).
+  // Si hace algo distinto, cada una queda con su id, y su decisión también.
   const juntas: Json[] = []
+  const firmas = new Map<Json, string>()
   for (const t of transiciones) {
-    const igual = t.desde !== '*' && (juntas.find((j) => j['id'] === t.id && Array.isArray(j['desde']) && texto({ ...j, desde: 0 }) === texto({ id: t.id, ...t.cuerpo, desde: 0 })) as { desde: string[] } | undefined)
-    if (igual) igual.desde.push(...(t.desde as string[]))
-    else juntas.push({ id: juntas.some((j) => j['id'] === t.id) ? `${t.id}-${(t.desde as string[])[0]}` : t.id, ...t.cuerpo, desde: t.desde === '*' ? '*' : [...t.desde] })
+    const firma = texto({ cuerpo: t.cuerpo, decision: t.decision })
+    const igual = t.desde === '*' ? undefined : (juntas.find((j) => j['id'] === t.id && Array.isArray(j['desde']) && firmas.get(j) === firma) as { desde: string[] } | undefined)
+    if (igual) {
+      igual.desde.push(...(t.desde as string[]))
+      continue
+    }
+    const repetido = juntas.some((j) => j['id'] === t.id)
+    const id = repetido ? `${t.id}-${t.desde === '*' ? 'otra' : t.desde[0]}` : t.id
+    let { cuerpo, decision } = t
+    if (decision && repetido) {
+      decision = { ...decision, id: `${id}-destino` }
+      cuerpo = { ...cuerpo, hacia: decision['id'] }
+    }
+    if (decision) decisiones.push(decision)
+    const junta = { id, ...cuerpo, desde: t.desde === '*' ? '*' : [...t.desde] }
+    firmas.set(junta, firma)
+    juntas.push(junta)
   }
 
   if (problemas.length > 0) return { problemas: [...new Set(problemas)] }

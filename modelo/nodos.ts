@@ -39,6 +39,11 @@ export type DatosEvento = {
    * motivo, que es lo que se le dice a la persona.
    */
   rechazo?: boolean
+  /**
+   * En un rechazo: lo que se le dice a la persona. Si falta, el motor arma el texto con las condiciones que no se cumplieron, que
+   * suele ser más preciso.
+   */
+  mensaje?: string
   /** En una interrupción: los ids de las esperas donde no aplica. */
   excepto?: readonly string[]
   /**

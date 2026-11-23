@@ -193,6 +193,12 @@ export function Inspector({ nodo, onCambio, onEliminar }: InspectorProps) {
         </Campo>
       )}
 
+      {nodo.type === 'evento' && nodo.data.variante === 'fin' && nodo.data.rechazo && (
+        <Campo etiqueta="Qué se le dice a la persona" ayuda="Si lo dejás vacío, el sistema arma el mensaje con lo que no se cumplió, que suele ser más preciso.">
+          {(id) => <Entrada id={id} value={nodo.data.mensaje ?? ''} onChange={(e) => onCambio({ mensaje: e.target.value || undefined })} />}
+        </Campo>
+      )}
+
       {nodo.type === 'evento' && nodo.data.variante === 'interrupcion' && (
         <Campo
           etiqueta="Qué pasa con el flujo"

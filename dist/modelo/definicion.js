@@ -2,7 +2,10 @@ import { esRechazo, rotuloDeNodo, SALIDA_SI_NO, salidasDe } from './nodos.js';
 const texto = (v) => JSON.stringify(v);
 // ── Condiciones ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 /** Las condiciones que tienen que cumplirse todas, como lista: una `todas` se abre, una sola queda sola. */
-const partes = (f) => (f === true ? [] : f === false ? [{ no: {} }] : Array.isArray(f['todas']) ? f['todas'] : [f]);
+// Una `todas` con mensaje propio no se abre: el mensaje es de todo el grupo.
+const partes = (f) => (f === true ? [] : f === false ? [{ no: {} }] : Array.isArray(f['todas']) && !('mensaje' in f) ? f['todas'] : [f]);
+/** La misma condición, con lo que se le dice a la persona cuando no se cumple. */
+const conMensaje = (f, mensaje) => (mensaje && f !== true && f !== false ? { ...f, mensaje } : f);
 const todas = (lista) => {
     if (lista.includes(false))
         return false;
@@ -125,8 +128,26 @@ export function definicionDeFlujo(contenido, opciones) {
         const sigue = (salida) => permitido(destino(lugar.marco, nodo, salida), pasos + 1);
         if (nodo.type === 'funcion')
             return sigue('salida');
-        if (nodo.type === 'decision')
-            return [...nodo.data.ramas].reverse().reduce((resto, rama) => segun(rama.condicion ?? {}, sigue(rama.id), resto), sigue(SALIDA_SI_NO));
+        if (nodo.type === 'decision') {
+            // Si una salida va directo a un rechazo con mensaje, ese mensaje es el de la condición que lo causa.
+            const mensajeDe = (salida) => {
+                const flecha = lugar.marco.flechas.find((f) => f.source === nodo.id && f.sourceHandle === salida);
+                const llega = flecha && lugar.marco.nodos.get(flecha.target);
+                return llega?.type === 'evento' && esRechazo(llega) ? llega.data.mensaje : undefined;
+            };
+            const delSiNo = mensajeDe(SALIDA_SI_NO);
+            return [...nodo.data.ramas].reverse().reduce((resto, rama, i) => {
+                const condicion = rama.condicion ?? {};
+                const deLaRama = mensajeDe(rama.id);
+                // Por esta rama se rechaza: lo que se pide es que NO se cumpla.
+                if (deLaRama)
+                    return todas([conMensaje(no(condicion), deLaRama), resto]);
+                // Es la última rama y por el «si no» se rechaza: lo que se pide es que se cumpla.
+                if (i === 0 && delSiNo)
+                    return todas([conMensaje(condicion, delSiNo), sigue(rama.id)]);
+                return segun(condicion, sigue(rama.id), resto);
+            }, sigue(SALIDA_SI_NO));
+        }
         if (nodo.type === 'subflujo') {
             const adentro = opciones.subflujo?.(nodo.data.flujo, nodo.data.version);
             const inicio = adentro?.nodos.find((n) => n.type === 'evento' && n.data.variante === 'inicio');
@@ -163,6 +184,7 @@ export function definicionDeFlujo(contenido, opciones) {
             // A dónde lleva. Si todos los caminos llegan al mismo lugar, es ese; si no, hace falta una decisión del core.
             const lugares = [...new Set(siguen.map((c) => texto(c.fin)))];
             let hacia;
+            let decision;
             if (lugares.length === 1) {
                 const fin = siguen[0].fin;
                 if (fin.tipo === 'estado')
@@ -174,7 +196,7 @@ export function definicionDeFlujo(contenido, opciones) {
                 // El último camino queda como «si no»: como los caminos cubren todos los casos, es el que vale cuando ninguno de los otros.
                 const ramas = siguen.slice(0, -1).map((c) => ({ si: c.condicion === true ? {} : c.condicion, hacia: c.fin.estado }));
                 hacia = `${id}-destino`;
-                decisiones.push({ id: hacia, nombre: `¿A dónde lleva «${nombre}»?`, ramas, sino: siguen.at(-1).fin.estado });
+                decision = { id: hacia, nombre: `¿A dónde lleva «${nombre}»?`, ramas, sino: siguen.at(-1).fin.estado };
             }
             for (const c of siguen)
                 if (c.fin.tipo === 'estado')
@@ -194,6 +216,7 @@ export function definicionDeFlujo(contenido, opciones) {
                 id,
                 desde,
                 cuerpo: { accion, nombre, ...(excepto?.length && { excepto: [...excepto] }), ...(hacia && { hacia }), ...(requisitos !== true && { requisitos }), ...(efectos.length > 0 && { efectos }) },
+                ...(decision && { decision }),
             });
         }
         catch (e) {
@@ -241,14 +264,29 @@ export function definicionDeFlujo(contenido, opciones) {
             problemas.push(e.message);
         }
     }
-    // El mismo evento en varias esperas, si hace lo mismo, es una sola transición desde todas. Si no, cada una con su id.
+    // El mismo evento en varias esperas, si hace lo mismo, es una sola transición desde todas (con una sola decisión de destino).
+    // Si hace algo distinto, cada una queda con su id, y su decisión también.
     const juntas = [];
+    const firmas = new Map();
     for (const t of transiciones) {
-        const igual = t.desde !== '*' && juntas.find((j) => j['id'] === t.id && Array.isArray(j['desde']) && texto({ ...j, desde: 0 }) === texto({ id: t.id, ...t.cuerpo, desde: 0 }));
-        if (igual)
+        const firma = texto({ cuerpo: t.cuerpo, decision: t.decision });
+        const igual = t.desde === '*' ? undefined : juntas.find((j) => j['id'] === t.id && Array.isArray(j['desde']) && firmas.get(j) === firma);
+        if (igual) {
             igual.desde.push(...t.desde);
-        else
-            juntas.push({ id: juntas.some((j) => j['id'] === t.id) ? `${t.id}-${t.desde[0]}` : t.id, ...t.cuerpo, desde: t.desde === '*' ? '*' : [...t.desde] });
+            continue;
+        }
+        const repetido = juntas.some((j) => j['id'] === t.id);
+        const id = repetido ? `${t.id}-${t.desde === '*' ? 'otra' : t.desde[0]}` : t.id;
+        let { cuerpo, decision } = t;
+        if (decision && repetido) {
+            decision = { ...decision, id: `${id}-destino` };
+            cuerpo = { ...cuerpo, hacia: decision['id'] };
+        }
+        if (decision)
+            decisiones.push(decision);
+        const junta = { id, ...cuerpo, desde: t.desde === '*' ? '*' : [...t.desde] };
+        firmas.set(junta, firma);
+        juntas.push(junta);
     }
     if (problemas.length > 0)
         return { problemas: [...new Set(problemas)] };

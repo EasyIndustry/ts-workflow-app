@@ -20,7 +20,8 @@ export function enTexto(valor) {
 }
 /** Las salidas de un flujo visto como subflujo: sus fines, con el id del nodo y su nombre. */
 export function salidasDeContenido(contenido) {
-    return contenido.nodos.flatMap((n) => (n.type === 'evento' && n.data.variante === 'fin' ? [{ id: n.id, nombre: n.data.nombre }] : []));
+    // Un rechazo no es una salida: no devuelve el flujo a quien lo llamó, corta la acción.
+    return contenido.nodos.flatMap((n) => (n.type === 'evento' && n.data.variante === 'fin' && !n.data.rechazo ? [{ id: n.id, nombre: n.data.nombre }] : []));
 }
 /** Lo que resume a un flujo y sale de su contenido: con qué arranca, cuántos nodos tiene y qué subflujos usa. */
 export function resumenDeContenido(contenido) {

@@ -26,7 +26,7 @@ La posición (\`position: { x, y }\`) es opcional: sin ella, los nodos se acomod
 | type | data | salidas (sourceHandle) |
 |---|---|---|
 | \`evento\`, variante \`inicio\` | \`{ variante: "inicio", nombre, accion? }\` | \`salida\` |
-| \`evento\`, variante \`fin\` | \`{ variante: "fin", nombre, rechazo? }\` | ninguna |
+| \`evento\`, variante \`fin\` | \`{ variante: "fin", nombre, rechazo?, mensaje? }\` | ninguna |
 | \`evento\`, variante \`espera\` | \`{ variante: "espera", nombre, eventos: [{ id, nombre, accion? }] }\` | una por evento: su \`id\` |
 | \`evento\`, variante \`interrupcion\` | \`{ variante: "interrupcion", nombre, accion?, excepto?, lateral? }\` | \`salida\` |
 | \`funcion\` | \`{ nombre, capacidad, params }\` | \`salida\` |
@@ -34,8 +34,9 @@ La posición (\`position: { x, y }\`) es opcional: sin ella, los nodos se acomod
 | \`subflujo\` | \`{ nombre, flujo, version, salidas: [{ id, nombre }] }\` | una por salida: su \`id\` |
 
 - **inicio**: lo que arranca el flujo. No recibe flechas.
-- **fin** con \`rechazo: true\`: la acción que trajo el flujo hasta ahí no se permite y todo sigue donde estaba. El nombre es
-  el motivo que se le dice a la persona. Es a donde va un requisito que no se cumple.
+- **fin** con \`rechazo: true\`: la acción que trajo el flujo hasta ahí no se permite y todo sigue donde estaba. Es a donde va un requisito que no se
+  cumple. \`mensaje\` es lo que se le dice a la persona; sin él, el sistema arma el texto con lo que no se cumplió. Puede ir
+  adentro de un subflujo (no cuenta como una de sus salidas).
 - **espera**: el flujo queda parado hasta que pase uno de sus eventos, y sigue por el primero. Solo en un maestro.
 - **interrupcion**: un evento que puede llegar en cualquier momento (salvo en las esperas de \`excepto\`) y desvía el flujo. Con
   \`lateral: true\` no lo desvía: hace lo de su camino y el flujo sigue donde estaba. No recibe flechas. Solo en un maestro.
