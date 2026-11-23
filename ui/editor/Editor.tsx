@@ -22,8 +22,11 @@ export type EditorProps = Omit<LienzoProps<NodoDeFlujo>, 'nodeTypes' | 'botones'
   tipo?: TipoDeFlujo
   /** Abre otro flujo (el subflujo de un nodo). Sin esta función, no se ofrece. */
   onAbrirFlujo?: (id: string) => void
-  /** Con esto aparece «Probar»: quién resuelve cada nodo en una prueba y los registros para elegir como entrada. */
-  prueba?: { ejecutor: Ejecutor; registros?: readonly RegistroDePrueba[] }
+  /**
+   * Para «Probar»: quién resuelve cada nodo y los registros para elegir como entrada. Sin ejecutor, la prueba es un ensayo manual:
+   * no ejecuta nada y la persona elige por dónde sigue en cada decisión.
+   */
+  prueba?: { ejecutor?: Ejecutor; registros?: readonly RegistroDePrueba[] }
 }
 
 const SIN_SUBFLUJOS: readonly ContratoDeSubflujo[] = []
@@ -49,11 +52,9 @@ export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro
               orientacion={preferencias.orientacion}
               botones={
                 <>
-                  {prueba && (
-                    <button type="button" onClick={() => setProbando(!probando)} aria-pressed={probando}>
-                      Probar
-                    </button>
-                  )}
+                  <button type="button" onClick={() => setProbando(!probando)} aria-pressed={probando}>
+                    Probar
+                  </button>
                   <button type="button" onClick={() => setConfigurando(true)}>
                     Configuración
                   </button>
@@ -66,8 +67,8 @@ export function Editor({ capacidades, subflujos = SIN_SUBFLUJOS, tipo = 'maestro
             </Lienzo>
           </div>
           {/* Mientras se prueba, el panel de prueba ocupa el lugar de la barra del inspector. */}
-          {prueba && probando ? (
-            <PanelDePrueba ejecutor={prueba.ejecutor} registros={prueba.registros} onCerrar={() => setProbando(false)} />
+          {probando ? (
+            <PanelDePrueba ejecutor={prueba?.ejecutor} registros={prueba?.registros} onCerrar={() => setProbando(false)} />
           ) : (
             preferencias.inspector === 'barra' && <BarraLateral />
           )}

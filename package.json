@@ -8,8 +8,8 @@
     "storybook": "storybook dev -p 6610 --host 127.0.0.1 --ci --exact-port",
     "build-storybook": "storybook build",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.servidor.json --noEmit",
-    "test": "npm run -s build && node --test test/*.test.mjs",
-    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.servidor.json"
+    "test": "npm run -s compilar && node --test test/*.test.mjs",
+    "compilar": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.servidor.json"
   },
   "dependencies": {
     "@xyflow/react": "12.12.1",

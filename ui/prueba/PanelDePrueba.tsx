@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { contenidoDe } from '../flujos/almacen'
 import { Campo, Lista } from '../formulario/Campo'
 import type { NodoDeFlujo } from '../nodos'
-import { rotuloDeNodo } from '../nodos/descripcion'
+import { rotuloDeNodo, salidasDe } from '../nodos/descripcion'
 import '../tema.css'
 import './prueba.css'
 import { avanzar, iniciar, sigue, type Ejecutor, type Recorrido } from './recorrido'
@@ -16,8 +16,11 @@ export interface RegistroDePrueba {
 }
 
 export interface PanelDePruebaProps {
-  /** Quién resuelve cada nodo durante la prueba. */
-  ejecutor: Ejecutor
+  /**
+   * Quién resuelve cada nodo durante la prueba. Sin él, la prueba es un ensayo manual: no ejecuta nada y, en cada nodo con más de
+   * una salida, la persona elige por dónde sigue.
+   */
+  ejecutor?: Ejecutor
   /** Registros para elegir como entrada. Los pasa quien monta la app. */
   registros?: readonly RegistroDePrueba[]
   onCerrar: () => void
@@ -28,7 +31,8 @@ const bonito = (valor: unknown) => JSON.stringify(valor ?? {}, null, 2)
 /**
  * El panel para probar el flujo que está en el lienzo. Tres sectores apilados que se abren y se cierran: la entrada (un registro o
  * los datos a mano), la salida (con qué terminó, o el error) y la traza (cada nodo por el que pasó). «Probar» corre todo; los
- * botones de doble triángulo van un paso atrás o adelante. Mientras tanto marca en el lienzo por dónde va. Va al lado del lienzo, adentro de su proveedor.
+ * botones de doble triángulo van un paso atrás o adelante. Mientras tanto marca en el lienzo por dónde va. Va al lado del lienzo,
+ * adentro de su proveedor.
  */
 export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePruebaProps) {
   const { getNodes, getEdges, updateNode } = useReactFlow<NodoDeFlujo>()
@@ -40,6 +44,7 @@ export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePru
   const [indice, setIndice] = useState(0)
   const recorrido = historia[indice] ?? null
   const [corriendo, setCorriendo] = useState(false)
+  const manual = !ejecutor
 
   // Marca en el lienzo por dónde va la prueba. La marca es solo de la pantalla: no se guarda con el flujo.
   useEffect(() => {
@@ -67,22 +72,43 @@ export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePru
     }
   }
 
-  async function probar() {
-    const listo = preparar()
-    if (!listo) return
+  /** En un ensayo manual, las salidas entre las que hay que elegir para seguir desde donde está parado. */
+  function porElegir(r: Recorrido | null): readonly { id: string; nombre?: string }[] {
+    if (!manual || !r || !sigue(r)) return []
+    const nodo = getNodes().find((n) => n.id === r.actual)
+    const salidas = nodo ? salidasDe(nodo) : []
+    return salidas.length > 1 ? salidas : []
+  }
+
+  /** Avanza desde el último estado de `pasos` hasta que termine, falle o haya que elegir. `salida` es la elección para el primer paso. */
+  async function correr(listo: NonNullable<ReturnType<typeof preparar>>, pasos: readonly Recorrido[], salida?: string) {
     setCorriendo(true)
-    let pasos = [iniciar(listo.contenido)]
+    let todos = pasos
     const mostrar = () => {
-      setHistoria(pasos)
-      setIndice(pasos.length - 1)
+      setHistoria(todos)
+      setIndice(todos.length - 1)
     }
     mostrar()
-    for (let r = pasos[0]!; sigue(r); ) {
-      r = await avanzar(listo.contenido, r, listo.entrada, ejecutor)
-      pasos = [...pasos, r]
+    let elegida = salida
+    for (let r = todos.at(-1)!; sigue(r) && (elegida !== undefined || porElegir(r).length === 0); ) {
+      const tomar = elegida
+      elegida = undefined
+      r = await avanzar(listo.contenido, r, listo.entrada, ejecutor ?? (async () => (tomar === undefined ? {} : { salida: tomar })))
+      todos = [...todos, r]
       mostrar()
     }
     setCorriendo(false)
+  }
+
+  async function probar() {
+    const listo = preparar()
+    if (listo) await correr(listo, [iniciar(listo.contenido)])
+  }
+
+  /** Sigue por la salida que eligió la persona, y de ahí hasta la próxima elección. */
+  async function elegir(salida: string) {
+    const listo = preparar()
+    if (listo && recorrido) await correr(listo, historia.slice(0, indice + 1), salida)
   }
 
   /** Un paso adelante. Si ya se había pasado por ahí, lo vuelve a mostrar; si no, resuelve el nodo que sigue. */
@@ -97,14 +123,15 @@ export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePru
       return
     }
     setCorriendo(true)
-    const nuevo = await avanzar(listo.contenido, recorrido, listo.entrada, ejecutor)
+    const nuevo = await avanzar(listo.contenido, recorrido, listo.entrada, ejecutor ?? (async () => ({})))
     setHistoria([...historia, nuevo])
     setIndice(historia.length)
     setCorriendo(false)
   }
 
   const enElUltimo = indice >= historia.length - 1
-  const puedeAdelante = !corriendo && (!recorrido || !enElUltimo || sigue(recorrido))
+  const opciones = enElUltimo && !corriendo ? porElegir(recorrido) : []
+  const puedeAdelante = !corriendo && opciones.length === 0 && (!recorrido || !enElUltimo || sigue(recorrido))
   const siguiente = recorrido?.actual && getNodes().find((n) => n.id === recorrido.actual)
   return (
     <aside className="wf-prueba" aria-label="Probar el flujo">
@@ -130,10 +157,22 @@ export function PanelDePrueba({ ejecutor, registros = [], onCerrar }: PanelDePru
       </div>
       <p className="wf-prueba-estado" role="status">
         {!recorrido && 'Todavía no se probó.'}
-        {recorrido && sigue(recorrido) && (corriendo && enElUltimo ? 'Probando…' : `En pausa. Sigue: ${siguiente ? rotuloDeNodo(siguiente) : 'el próximo nodo'}.`)}
+        {recorrido && sigue(recorrido) && (corriendo && enElUltimo ? 'Probando…' : `En pausa en ${siguiente ? rotuloDeNodo(siguiente) : 'el próximo nodo'}.`)}
         {recorrido?.estado === 'terminado' && `Terminó en «${recorrido.resultado?.fin}», en ${recorrido.traza.length} pasos.`}
         {recorrido?.estado === 'error' && 'Se detuvo por un error.'}
       </p>
+
+      {manual && <p className="wf-prueba-nota">Ensayo manual: no ejecuta nada. En cada nodo con más de una salida, elegís por dónde sigue.</p>}
+      {opciones.length > 0 && (
+        <div className="wf-prueba-eleccion" role="group" aria-label="Por dónde sigue">
+          <strong>¿Por dónde sigue?</strong>
+          {opciones.map((o) => (
+            <button key={o.id} type="button" className="wf-prueba-boton" onClick={() => void elegir(o.id)}>
+              {o.nombre ?? o.id}
+            </button>
+          ))}
+        </div>
+      )}
 
       <details open>
         <summary>Entrada</summary>
