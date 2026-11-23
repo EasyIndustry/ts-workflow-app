@@ -49,6 +49,8 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
   const [fallo, setFallo] = useState(false)
   const [publicando, setPublicando] = useState(false)
   const [saliendo, setSaliendo] = useState(false)
+  // De qué flujos se vino al abrir un subflujo desde un nodo, para volver por el mismo camino.
+  const [camino, setCamino] = useState<readonly { id: string; nombre: string }[]>([])
 
   useEffect(() => {
     void almacen.listar().then(setFlujos)
@@ -90,6 +92,12 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
 
   function salir() {
     setSaliendo(false)
+    const anterior = camino.at(-1)
+    if (anterior) {
+      setCamino(camino.slice(0, -1))
+      void abrir(anterior.id)
+      return
+    }
     setAbierto(null)
     void almacen.listar().then(setFlujos)
   }
@@ -106,7 +114,8 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
 
   /** Pasa a otro flujo (el subflujo de un nodo). Antes guarda lo pendiente como borrador, para no perderlo. */
   async function irA(id: string) {
-    if (sinGuardar && !(await guardar(sinGuardar))) return
+    if (!abierto || (sinGuardar && !(await guardar(sinGuardar)))) return
+    setCamino([...camino, { id: abierto.id, nombre: abierto.nombre }])
     await abrir(id)
   }
 
@@ -125,6 +134,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
         version={abierto.version}
         estado={estado}
         onVolver={() => void volver()}
+        volverA={camino.at(-1)?.nombre}
         onGuardar={() => sinGuardar && void guardar(sinGuardar)}
         hayCambiosSinGuardar={Boolean(sinGuardar) && !guardando}
         onPublicar={puedePublicar ? () => setPublicando(true) : undefined}
