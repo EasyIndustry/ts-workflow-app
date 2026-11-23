@@ -19,7 +19,8 @@
 }
 
 .wf-nodo .react-flow__handle,
-.wf-rombo .react-flow__handle {
+.wf-rombo .react-flow__handle,
+.wf-evento .react-flow__handle {
   width: 7px;
   height: 7px;
   border: 1px solid var(--wf-linea, #a1a1aa);
@@ -133,4 +134,112 @@
 
 .wf-nodo-horizontal > .wf-rombo-despues {
   transform: translate(8px, 4px);
+}
+
+/* El subflujo es el «proceso predefinido»: una tarjeta con una barra a cada costado. */
+.wf-nodo-subflujo {
+  position: relative;
+  padding-inline: 22px;
+}
+
+.wf-nodo-subflujo::before,
+.wf-nodo-subflujo::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--wf-trazo, #a1a1aa);
+}
+
+.wf-nodo-subflujo::before {
+  left: 7px;
+}
+
+.wf-nodo-subflujo::after {
+  right: 7px;
+}
+
+.wf-nodo-horizontal.wf-nodo-subflujo .wf-nodo-salidas > span > .react-flow__handle {
+  right: -23px;
+}
+
+/*
+ * El evento es un círculo. El borde se dibuja con una sombra hacia adentro, así la caja del nodo es el círculo entero y los puntos
+ * de conexión caen justo sobre el contorno. Borde fino: inicio. Doble: espera. Grueso: fin.
+ */
+.wf-evento {
+  --wf-evento-trazo: var(--wf-trazo, #71717a);
+  --wf-evento-sombra: 0 1px 2px rgb(0 0 0 / 6%), 0 2px 6px rgb(0 0 0 / 8%);
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--wf-tarjeta, #ffffff);
+  color: var(--wf-texto, #27272a);
+  font-size: 12px;
+}
+
+.react-flow__node.selected > .wf-evento {
+  --wf-evento-trazo: var(--wf-acento, #3b82f6);
+}
+
+.wf-evento-inicio {
+  box-shadow:
+    inset 0 0 0 1.5px var(--wf-evento-trazo),
+    var(--wf-evento-sombra);
+}
+
+.wf-evento-espera {
+  box-shadow:
+    inset 0 0 0 1.5px var(--wf-evento-trazo),
+    inset 0 0 0 4.5px var(--wf-tarjeta, #ffffff),
+    inset 0 0 0 6px var(--wf-evento-trazo),
+    var(--wf-evento-sombra);
+}
+
+.wf-evento-fin {
+  box-shadow:
+    inset 0 0 0 4px var(--wf-evento-trazo),
+    var(--wf-evento-sombra);
+}
+
+/* El nombre va afuera del círculo: a la derecha en vertical, arriba en horizontal, donde no pasan flechas. */
+.wf-evento-nombre {
+  position: absolute;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.wf-nodo-vertical > .wf-evento-nombre {
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
+}
+
+.wf-nodo-horizontal > .wf-evento-nombre {
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.wf-evento-salida {
+  position: absolute;
+  color: var(--wf-tenue, #71717a);
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.wf-nodo-vertical > .wf-evento-salida.wf-rotulo-antes {
+  transform: translate(calc(-100% - 8px), 2px);
+}
+
+.wf-nodo-vertical > .wf-evento-salida.wf-rotulo-despues {
+  transform: translate(8px, 2px);
+}
+
+.wf-nodo-horizontal > .wf-evento-salida {
+  transform: translate(8px, -50%);
 }

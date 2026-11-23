@@ -23,7 +23,14 @@ type Story = StoryObj<typeof meta>
 
 const en = (x: number, y: number) => ({ position: { x, y } })
 
-const disparador: NodoDeFlujo = { id: 'disparador', type: 'disparador', ...en(0, 0), data: { nombre: 'Llegó un pedido', detalle: 'evento' } }
+const inicio: NodoDeFlujo = { id: 'inicio', type: 'evento', ...en(0, 0), data: { variante: 'inicio', nombre: 'Llegó un pedido' } }
+const espera: NodoDeFlujo = {
+  id: 'espera',
+  type: 'evento',
+  ...en(0, 0),
+  data: { variante: 'espera', nombre: 'Esperando la respuesta', eventos: [{ id: 'respondio', nombre: 'respondió' }, { id: 'vencio', nombre: 'pasaron 3 días' }] },
+}
+const fin: NodoDeFlujo = { id: 'fin', type: 'evento', ...en(0, 0), data: { variante: 'fin', nombre: 'Cerrado' } }
 const funcion: NodoDeFlujo = { id: 'funcion', type: 'funcion', ...en(0, 0), data: { nombre: 'Avisar al responsable', capacidad: 'avisos.enviar' } }
 const decision: NodoDeFlujo = {
   id: 'decision',
@@ -31,7 +38,6 @@ const decision: NodoDeFlujo = {
   ...en(0, 0),
   data: { nombre: '¿Cuánto es el total?', ramas: [{ id: 'alto', nombre: 'más de 1000' }, { id: 'medio', nombre: 'más de 100' }] },
 }
-const estado: NodoDeFlujo = { id: 'estado', type: 'estado', ...en(0, 0), data: { nombre: 'En revisión' } }
 const subflujo: NodoDeFlujo = {
   id: 'subflujo',
   type: 'subflujo',
@@ -39,29 +45,21 @@ const subflujo: NodoDeFlujo = {
   data: { nombre: 'Revisar el pedido', flujo: 'revision', version: 3, salidas: [{ id: 'aprobado', nombre: 'aprobado' }, { id: 'rechazado', nombre: 'rechazado' }] },
 }
 
-export const Disparador: Story = { args: { nodos: [disparador] } }
+/** Las tres variantes del evento: inicio (borde fino), espera (borde doble) y fin (borde grueso). */
+export const Evento: Story = { args: { nodos: [inicio, { ...espera, ...en(260, 0) }, { ...fin, ...en(560, 0) }] } }
 export const Funcion: Story = { args: { nodos: [funcion] } }
 export const Decision: Story = { args: { nodos: [decision] } }
-export const Estado: Story = {
-  args: {
-    nodos: [
-      { id: 'inicial', type: 'estado', ...en(0, 0), data: { nombre: 'Nuevo', inicial: true } },
-      { ...estado, ...en(220, 0) },
-      { id: 'final', type: 'estado', ...en(440, 0), data: { nombre: 'Cerrado', final: true } },
-    ],
-  },
-}
 export const Subflujo: Story = { args: { nodos: [subflujo] } }
 
 export const Todos: Story = {
   args: {
     nodos: [
-      { ...disparador, ...en(0, 0) },
-      { ...estado, ...en(260, 0) },
+      { ...inicio, ...en(60, 0) },
+      { ...espera, ...en(360, 0) },
       { ...decision, ...en(0, 140) },
-      { ...funcion, ...en(300, 140) },
-      { ...subflujo, ...en(0, 300) },
-      { id: 'final', type: 'estado', ...en(300, 300), data: { nombre: 'Cerrado', final: true } },
+      { ...funcion, ...en(300, 160) },
+      { ...subflujo, ...en(0, 340) },
+      { ...fin, ...en(360, 350) },
     ],
   },
 }
@@ -71,22 +69,24 @@ const flecha = (source: string, target: string, sourceHandle = 'salida'): Edge =
 export const Conectados: Story = {
   args: {
     nodos: [
-      { ...disparador, ...en(0, 0) },
+      { ...inicio, ...en(0, 0) },
       { ...decision, ...en(40, 30) },
       { ...funcion, ...en(80, 60) },
       { ...subflujo, ...en(120, 90) },
-      { ...estado, ...en(160, 120) },
-      { id: 'final', type: 'estado', ...en(200, 150), data: { nombre: 'Cerrado', final: true } },
+      { ...espera, ...en(160, 120) },
+      { ...fin, ...en(200, 150) },
+      { id: 'rechazado', type: 'evento', ...en(240, 180), data: { variante: 'fin', nombre: 'Rechazado' } },
     ],
     flechas: [
-      flecha('disparador', 'decision'),
+      flecha('inicio', 'decision'),
       flecha('decision', 'subflujo', 'alto'),
       flecha('decision', 'funcion', 'medio'),
-      flecha('decision', 'final', 'sino'),
-      flecha('subflujo', 'estado', 'aprobado'),
-      flecha('subflujo', 'final', 'rechazado'),
-      flecha('funcion', 'final'),
-      flecha('estado', 'final'),
+      flecha('decision', 'fin', 'sino'),
+      flecha('subflujo', 'espera', 'aprobado'),
+      flecha('subflujo', 'rechazado', 'rechazado'),
+      flecha('funcion', 'fin'),
+      flecha('espera', 'fin', 'respondio'),
+      flecha('espera', 'rechazado', 'vencio'),
     ],
   },
 }
