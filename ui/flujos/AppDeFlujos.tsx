@@ -40,7 +40,7 @@ export function AppDeFlujos(props: AppDeFlujosProps) {
 
 function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujosProps) {
   const [preferencias] = usePreferencias()
-  const [flujos, setFlujos] = useState<readonly ResumenDeFlujo[]>([])
+  const [flujos, setFlujos] = useState<readonly ResumenDeFlujo[] | null>(null)
   const [abierto, setAbierto] = useState<FlujoAbierto | null>(null)
   const [guardado, setGuardado] = useState('')
   const [sinGuardar, setSinGuardar] = useState<ContenidoDeFlujo | null>(null)
@@ -102,7 +102,7 @@ function App({ almacen, capacidades, puedePublicar = true, prueba }: AppDeFlujos
   }
 
   if (!abierto) {
-    return <ListaDeFlujos flujos={flujos} onAbrir={(id) => void abrir(id)} onCrear={(nombre) => void almacen.crear(nombre).then((f) => abrir(f.id))} />
+    return <ListaDeFlujos flujos={flujos ?? []} cargando={!flujos} onAbrir={(id) => void abrir(id)} onCrear={(nombre) => void almacen.crear(nombre).then((f) => abrir(f.id))} />
   }
 
   const automatico = preferencias.guardado === 'automatico'
